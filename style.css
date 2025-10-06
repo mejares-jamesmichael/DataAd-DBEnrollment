@@ -1,0 +1,297 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    padding: 20px;
+    background: #f4f4f4;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border: 1px solid #ddd;
+}
+
+/* Header */
+header {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #333;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+header p {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Navigation */
+nav {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    flex-wrap: wrap;
+}
+
+nav button {
+    padding: 10px 15px;
+    border: none;
+    background: #f4f4f4;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 3px solid transparent;
+}
+
+nav button:hover {
+    background: #e4e4e4;
+}
+
+nav button.active {
+    background: white;
+    border-bottom-color: #333;
+    font-weight: bold;
+}
+
+/* Main Content */
+main {
+    padding: 20px 0;
+}
+
+/* Sections */
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+/* Controls */
+.controls {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.controls input {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+.controls button {
+    padding: 8px 15px;
+    background: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.controls button:hover {
+    background: #555;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+th {
+    background: #333;
+    color: white;
+    font-weight: normal;
+}
+
+tbody tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+tbody tr:hover {
+    background: #f0f0f0;
+}
+
+td button {
+    padding: 5px 10px;
+    margin-right: 5px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+td button:first-child {
+    background: #ffc107;
+}
+
+td button:last-child {
+    background: #dc3545;
+    color: white;
+}
+
+td button:hover {
+    opacity: 0.8;
+}
+
+/* Alert */
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid;
+    display: none;
+}
+
+.alert.show {
+    display: block;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border: 1px solid #333;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: red;
+}
+
+.modal-content h2 {
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+/* Forms */
+form label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+form input,
+form select,
+form textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+}
+
+form button {
+    padding: 10px 20px;
+    margin-top: 10px;
+    margin-right: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+form button[type="submit"] {
+    background: #28a745;
+    color: white;
+}
+
+form button[type="button"] {
+    background: #6c757d;
+    color: white;
+}
+
+form button:hover {
+    opacity: 0.8;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        padding: 0;
+        background: white;
+    }
+    
+    .container {
+        border: none;
+    }
+    
+    header, nav, .controls, .no-print {
+        display: none !important;
+    }
+    
+    table {
+        page-break-inside: avoid;
+    }
+}
+
+/* Loading State */
+tbody td {
+    text-align: center;
+}
+
+.empty-state {
+    padding: 40px;
+    text-align: center;
+    color: #999;
+}

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrollment Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DATABASE ADMINISTRATION</h1>
+            <p>Database: dbenrollment</p>
+        </header>
+
+        <nav>
+            <button onclick="showSection('departments')" class="active">Departments</button>
+            <button onclick="showSection('programs')">Programs</button>
+            <button onclick="showSection('instructors')">Instructors</button>
+            <button onclick="showSection('students')">Students</button>
+            <button onclick="showSection('courses')">Courses</button>
+            <button onclick="showSection('terms')">Terms</button>
+            <button onclick="showSection('rooms')">Rooms</button>
+            <button onclick="showSection('sections')">Sections</button>
+            <button onclick="showSection('enrollments')">Enrollments</button>
+        </nav>
+
+        <main>
+            <div id="alert" class="alert"></div>
+
+            <!-- Departments Section -->
+            <section id="departments" class="section active">
+                <div class="controls">
+                    <input type="text" id="searchDept" placeholder="Search..." onkeyup="loadDepartments()">
+                    <button onclick="openDeptModal()">Add Department</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="departmentsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deptTableBody">
+                        <tr><td colspan="4">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Programs Section -->
+            <section id="programs" class="section">
+                <div class="controls">
+                    <input type="text" id="searchProg" placeholder="Search..." onkeyup="loadPrograms()">
+                    <button onclick="openProgModal()">Add Program</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="programsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="progTableBody">
+                        <tr><td colspan="5">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Instructors Section -->
+            <section id="instructors" class="section">
+                <div class="controls">
+                    <input type="text" id="searchInst" placeholder="Search..." onkeyup="loadInstructors()">
+                    <button onclick="openInstModal()">Add Instructor</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="instructorsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="instTableBody">
+                        <tr><td colspan="5">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Students Section -->
+            <section id="students" class="section">
+                <div class="controls">
+                    <input type="text" id="searchStud" placeholder="Search..." onkeyup="loadStudents()">
+                    <button onclick="openStudModal()">Add Student</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="studentsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Student No</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Program</th>
+                            <th>Year</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studTableBody">
+                        <tr><td colspan="7">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Courses Section -->
+            <section id="courses" class="section">
+                <div class="controls">
+                    <input type="text" id="searchCourse" placeholder="Search..." onkeyup="loadCourses()">
+                    <button onclick="openCourseModal()">Add Course</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="coursesTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Title</th>
+                            <th>Units</th>
+                            <th>Lec Hrs</th>
+                            <th>Lab Hrs</th>
+                            <th>Department</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courseTableBody">
+                        <tr><td colspan="8">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Terms Section -->
+            <section id="terms" class="section">
+                <div class="controls">
+                    <input type="text" id="searchTerm" placeholder="Search..." onkeyup="loadTerms()">
+                    <button onclick="openTermModal()">Add Term</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="termsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="termTableBody">
+                        <tr><td colspan="5">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Rooms Section -->
+            <section id="rooms" class="section">
+                <div class="controls">
+                    <input type="text" id="searchRoom" placeholder="Search..." onkeyup="loadRooms()">
+                    <button onclick="openRoomModal()">Add Room</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="roomsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Building</th>
+                            <th>Room Code</th>
+                            <th>Capacity</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roomTableBody">
+                        <tr><td colspan="5">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Sections Section -->
+            <section id="sections" class="section">
+                <div class="controls">
+                    <input type="text" id="searchSection" placeholder="Search..." onkeyup="loadSections()">
+                    <button onclick="openSectionModal()">Add Section</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="sectionsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Code</th>
+                            <th>Course</th>
+                            <th>Term</th>
+                            <th>Instructor</th>
+                            <th>Schedule</th>
+                            <th>Room</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sectionTableBody">
+                        <tr><td colspan="8">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Enrollments Section -->
+            <section id="enrollments" class="section">
+                <div class="controls">
+                    <input type="text" id="searchEnroll" placeholder="Search..." onkeyup="loadEnrollments()">
+                    <button onclick="openEnrollModal()">Add Enrollment</button>
+                    <button onclick="window.print()">Print</button>
+                </div>
+                <table id="enrollmentsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Student</th>
+                            <th>Course</th>
+                            <th>Section</th>
+                            <th>Date Enrolled</th>
+                            <th>Status</th>
+                            <th>Grade</th>
+                            <th class="no-print">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="enrollTableBody">
+                        <tr><td colspan="8">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="deptModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDeptModal()">&times;</span>
+            <h2 id="deptModalTitle">Add Department</h2>
+            <form id="deptForm" onsubmit="saveDepartment(event)">
+                <input type="hidden" id="deptId">
+                <label>Code:</label>
+                <input type="text" id="deptCode" required>
+                <label>Name:</label>
+                <input type="text" id="deptName" required>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeDeptModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="progModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProgModal()">&times;</span>
+            <h2 id="progModalTitle">Add Program</h2>
+            <form id="progForm" onsubmit="saveProgram(event)">
+                <input type="hidden" id="progId">
+                <label>Code:</label>
+                <input type="text" id="progCode" required>
+                <label>Name:</label>
+                <input type="text" id="progName" required>
+                <label>Department:</label>
+                <select id="progDept" required></select>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeProgModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="instModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeInstModal()">&times;</span>
+            <h2 id="instModalTitle">Add Instructor</h2>
+            <form id="instForm" onsubmit="saveInstructor(event)">
+                <input type="hidden" id="instId">
+                <label>First Name:</label>
+                <input type="text" id="instFirst" required>
+                <label>Last Name:</label>
+                <input type="text" id="instLast" required>
+                <label>Email:</label>
+                <input type="email" id="instEmail" required>
+                <label>Department:</label>
+                <select id="instDept" required></select>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeInstModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="studModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeStudModal()">&times;</span>
+            <h2 id="studModalTitle">Add Student</h2>
+            <form id="studForm" onsubmit="saveStudent(event)">
+                <input type="hidden" id="studId">
+                <label>Student No:</label>
+                <input type="text" id="studNo" required>
+                <label>First Name:</label>
+                <input type="text" id="studFirst" required>
+                <label>Last Name:</label>
+                <input type="text" id="studLast" required>
+                <label>Email:</label>
+                <input type="email" id="studEmail" required>
+                <label>Gender:</label>
+                <select id="studGender" required>
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+                <label>Birthdate:</label>
+                <input type="date" id="studBirth" required>
+                <label>Year Level:</label>
+                <select id="studYear" required>
+                    <option value="">Select</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                </select>
+                <label>Program:</label>
+                <select id="studProg" required></select>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeStudModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="courseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCourseModal()">&times;</span>
+            <h2 id="courseModalTitle">Add Course</h2>
+            <form id="courseForm" onsubmit="saveCourse(event)">
+                <input type="hidden" id="courseId">
+                <label>Code:</label>
+                <input type="text" id="courseCode" required>
+                <label>Title:</label>
+                <input type="text" id="courseTitle" required>
+                <label>Units:</label>
+                <input type="number" id="courseUnits" required>
+                <label>Lecture Hours:</label>
+                <input type="number" step="0.1" id="courseLecHrs" required>
+                <label>Lab Hours:</label>
+                <input type="number" step="0.1" id="courseLabHrs" required>
+                <label>Department:</label>
+                <select id="courseDept" required></select>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeCourseModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="termModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTermModal()">&times;</span>
+            <h2 id="termModalTitle">Add Term</h2>
+            <form id="termForm" onsubmit="saveTerm(event)">
+                <input type="hidden" id="termId">
+                <label>Code:</label>
+                <input type="text" id="termCode" required>
+                <label>Start Date:</label>
+                <input type="date" id="termStart" required>
+                <label>End Date:</label>
+                <input type="date" id="termEnd" required>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeTermModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="roomModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRoomModal()">&times;</span>
+            <h2 id="roomModalTitle">Add Room</h2>
+            <form id="roomForm" onsubmit="saveRoom(event)">
+                <input type="hidden" id="roomId">
+                <label>Building:</label>
+                <input type="text" id="roomBuilding" required>
+                <label>Room Code:</label>
+                <input type="text" id="roomCode" required>
+                <label>Capacity:</label>
+                <input type="number" id="roomCapacity" required>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeRoomModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="sectionModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSectionModal()">&times;</span>
+            <h2 id="sectionModalTitle">Add Section</h2>
+            <form id="sectionForm" onsubmit="saveSection(event)">
+                <input type="hidden" id="sectionId">
+                <label>Section Code:</label>
+                <input type="text" id="sectionCode" required>
+                <label>Course:</label>
+                <select id="sectionCourse" required></select>
+                <label>Term:</label>
+                <select id="sectionTerm" required></select>
+                <label>Instructor:</label>
+                <select id="sectionInst" required></select>
+                <label>Day Pattern:</label>
+                <input type="text" id="sectionDays" placeholder="MWF, TTh" required>
+                <label>Start Time:</label>
+                <input type="time" id="sectionStart" required>
+                <label>End Time:</label>
+                <input type="time" id="sectionEnd" required>
+                <label>Room:</label>
+                <select id="sectionRoom" required></select>
+                <label>Max Capacity:</label>
+                <input type="number" id="sectionCap" required>
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeSectionModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="enrollModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEnrollModal()">&times;</span>
+            <h2 id="enrollModalTitle">Add Enrollment</h2>
+            <form id="enrollForm" onsubmit="saveEnrollment(event)">
+                <input type="hidden" id="enrollId">
+                <label>Student:</label>
+                <select id="enrollStud" required></select>
+                <label>Section:</label>
+                <select id="enrollSection" required></select>
+                <label>Date Enrolled:</label>
+                <input type="date" id="enrollDate" required>
+                <label>Status:</label>
+                <select id="enrollStatus" required>
+                    <option value="Enrolled">Enrolled</option>
+                    <option value="Dropped">Dropped</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Failed">Failed</option>
+                </select>
+                <label>Grade (optional):</label>
+                <input type="text" id="enrollGrade">
+                <button type="submit">Save</button>
+                <button type="button" onclick="closeEnrollModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
