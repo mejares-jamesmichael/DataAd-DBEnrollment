@@ -108,6 +108,28 @@ main {
     background: #555;
 }
 
+.controls button:nth-of-type(3) {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.controls button:nth-of-type(3):hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+/* Excel export specific styling */
+.excel-export {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: white;
+}
+
+.excel-export:hover {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+}
+
 /* Tables */
 table {
     width: 100%;

@@ -962,6 +962,125 @@ function deleteEnroll(id) {
 }
 
 // ===========================================
+// EXCEL EXPORT FUNCTIONS
+// ===========================================
+function exportToExcel(sectionName, fileName) {
+    const tableMap = {
+        'departments': 'departmentsTable',
+        'programs': 'programsTable',
+        'instructors': 'instructorsTable',
+        'students': 'studentsTable',
+        'courses': 'coursesTable',
+        'terms': 'termsTable',
+        'rooms': 'roomsTable',
+        'sections': 'sectionsTable',
+        'enrollments': 'enrollmentsTable'
+    };
+
+    const tableId = tableMap[sectionName];
+    const table = document.getElementById(tableId);
+    
+    if (!table) {
+        showAlert('Table not found!', 'error');
+        return;
+    }
+
+    // Create a workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    
+    // Convert table to worksheet, excluding action columns
+    const ws = XLSX.utils.table_to_sheet(table, {
+        raw: false,
+        dateNF: 'yyyy-mm-dd'
+    });
+
+    // Remove the Actions column (last column)
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    const lastCol = XLSX.utils.encode_col(range.e.c);
+    
+    // Delete the last column (Actions) from each row
+    for (let row = range.s.r; row <= range.e.r; row++) {
+        const cellAddress = lastCol + (row + 1);
+        delete ws[cellAddress];
+    }
+    
+    // Update the range to exclude the last column
+    range.e.c = range.e.c - 1;
+    ws['!ref'] = XLSX.utils.encode_range(range);
+
+    // Set column widths
+    const colWidths = [];
+    for (let col = 0; col <= range.e.c; col++) {
+        colWidths.push({ width: 15 });
+    }
+    ws['!cols'] = colWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, fileName);
+
+    // Generate filename with current date
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const fullFileName = `${fileName}_${dateStr}.xlsx`;
+
+    // Write file
+    XLSX.writeFile(wb, fullFileName);
+    
+    showAlert(`Excel file "${fullFileName}" has been downloaded successfully!`, 'success');
+}
+
+function exportAllToExcel() {
+    const wb = XLSX.utils.book_new();
+    
+    const sections = [
+        { name: 'departments', table: 'departmentsTable', sheet: 'Departments' },
+        { name: 'programs', table: 'programsTable', sheet: 'Programs' },
+        { name: 'instructors', table: 'instructorsTable', sheet: 'Instructors' },
+        { name: 'students', table: 'studentsTable', sheet: 'Students' },
+        { name: 'courses', table: 'coursesTable', sheet: 'Courses' },
+        { name: 'terms', table: 'termsTable', sheet: 'Terms' },
+        { name: 'rooms', table: 'roomsTable', sheet: 'Rooms' },
+        { name: 'sections', table: 'sectionsTable', sheet: 'Sections' },
+        { name: 'enrollments', table: 'enrollmentsTable', sheet: 'Enrollments' }
+    ];
+
+    sections.forEach(section => {
+        const table = document.getElementById(section.table);
+        if (table && table.rows.length > 1) {
+            const ws = XLSX.utils.table_to_sheet(table, { raw: false });
+            
+            // Remove Actions column
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            const lastCol = XLSX.utils.encode_col(range.e.c);
+            
+            for (let row = range.s.r; row <= range.e.r; row++) {
+                const cellAddress = lastCol + (row + 1);
+                delete ws[cellAddress];
+            }
+            
+            range.e.c = range.e.c - 1;
+            ws['!ref'] = XLSX.utils.encode_range(range);
+            
+            // Set column widths
+            const colWidths = [];
+            for (let col = 0; col <= range.e.c; col++) {
+                colWidths.push({ width: 15 });
+            }
+            ws['!cols'] = colWidths;
+            
+            XLSX.utils.book_append_sheet(wb, ws, section.sheet);
+        }
+    });
+
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const fileName = `Enrollment_System_Complete_${dateStr}.xlsx`;
+    
+    XLSX.writeFile(wb, fileName);
+    showAlert(`Complete Excel file "${fileName}" has been downloaded successfully!`, 'success');
+}
+
+// ===========================================
 // INITIALIZATION
 // ===========================================
 window.addEventListener('DOMContentLoaded', function() {

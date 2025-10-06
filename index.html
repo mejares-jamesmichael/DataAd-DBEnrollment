@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enrollment Management System</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -33,6 +34,7 @@
                 <div class="controls">
                     <input type="text" id="searchDept" placeholder="Search..." onkeyup="loadDepartments()">
                     <button onclick="openDeptModal()">Add Department</button>
+                    <button onclick="exportToExcel('departments', 'Departments')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="departmentsTable">
@@ -55,6 +57,7 @@
                 <div class="controls">
                     <input type="text" id="searchProg" placeholder="Search..." onkeyup="loadPrograms()">
                     <button onclick="openProgModal()">Add Program</button>
+                    <button onclick="exportToExcel('programs', 'Programs')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="programsTable">
@@ -78,6 +81,7 @@
                 <div class="controls">
                     <input type="text" id="searchInst" placeholder="Search..." onkeyup="loadInstructors()">
                     <button onclick="openInstModal()">Add Instructor</button>
+                    <button onclick="exportToExcel('instructors', 'Instructors')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="instructorsTable">
@@ -101,6 +105,7 @@
                 <div class="controls">
                     <input type="text" id="searchStud" placeholder="Search..." onkeyup="loadStudents()">
                     <button onclick="openStudModal()">Add Student</button>
+                    <button onclick="exportToExcel('students', 'Students')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="studentsTable">
@@ -126,6 +131,7 @@
                 <div class="controls">
                     <input type="text" id="searchCourse" placeholder="Search..." onkeyup="loadCourses()">
                     <button onclick="openCourseModal()">Add Course</button>
+                    <button onclick="exportToExcel('courses', 'Courses')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="coursesTable">
@@ -152,6 +158,7 @@
                 <div class="controls">
                     <input type="text" id="searchTerm" placeholder="Search..." onkeyup="loadTerms()">
                     <button onclick="openTermModal()">Add Term</button>
+                    <button onclick="exportToExcel('terms', 'Terms')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="termsTable">
@@ -175,6 +182,7 @@
                 <div class="controls">
                     <input type="text" id="searchRoom" placeholder="Search..." onkeyup="loadRooms()">
                     <button onclick="openRoomModal()">Add Room</button>
+                    <button onclick="exportToExcel('rooms', 'Rooms')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="roomsTable">
@@ -198,6 +206,7 @@
                 <div class="controls">
                     <input type="text" id="searchSection" placeholder="Search..." onkeyup="loadSections()">
                     <button onclick="openSectionModal()">Add Section</button>
+                    <button onclick="exportToExcel('sections', 'Sections')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="sectionsTable">
@@ -224,6 +233,7 @@
                 <div class="controls">
                     <input type="text" id="searchEnroll" placeholder="Search..." onkeyup="loadEnrollments()">
                     <button onclick="openEnrollModal()">Add Enrollment</button>
+                    <button onclick="exportToExcel('enrollments', 'Enrollments')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
                 </div>
                 <table id="enrollmentsTable">
