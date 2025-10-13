@@ -56,6 +56,8 @@ function readPrograms() {
     global $conn;
     
     $search = sanitize($_GET['search'] ?? '');
+    $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
+    $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
         $sql = "SELECT p.*, d.dept_name 
@@ -63,7 +65,7 @@ function readPrograms() {
                 LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id AND d.deleted_at IS NULL
                 WHERE (p.program_code LIKE ? OR p.program_name LIKE ? OR d.dept_name LIKE ?)
                 AND p.deleted_at IS NULL
-                ORDER BY p.program_id";
+                ORDER BY p.program_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
@@ -72,7 +74,7 @@ function readPrograms() {
                 FROM tblPrograms p
                 LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id AND d.deleted_at IS NULL
                 WHERE p.deleted_at IS NULL
-                ORDER BY p.program_id";
+                ORDER BY p.program_id $order";
         $stmt = $conn->prepare($sql);
     }
     

@@ -58,17 +58,19 @@ function readDepartments() {
     global $conn;
     
     $search = sanitize($_GET['search'] ?? '');
+    $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
+    $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
         $sql = "SELECT * FROM tblDepartments 
                 WHERE (dept_code LIKE ? OR dept_name LIKE ?) 
                 AND deleted_at IS NULL
-                ORDER BY dept_id";
+                ORDER BY dept_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ss", $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT * FROM tblDepartments WHERE deleted_at IS NULL ORDER BY dept_id";
+        $sql = "SELECT * FROM tblDepartments WHERE deleted_at IS NULL ORDER BY dept_id $order";
         $stmt = $conn->prepare($sql);
     }
     

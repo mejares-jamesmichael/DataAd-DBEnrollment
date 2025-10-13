@@ -120,12 +120,24 @@ main {
 
 /* Trash button styling */
 .controls button:nth-of-type(5) {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+.controls button:nth-of-type(5):hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+/* Sort button styling */
+.controls button:nth-of-type(6) {
     background-color: #6c757d;
     border-color: #6c757d;
     color: white;
 }
 
-.controls button:nth-of-type(5):hover {
+.controls button:nth-of-type(6):hover {
     background-color: #5a6268;
     border-color: #545b62;
 }

@@ -1,5 +1,5 @@
 <?php
-// students.php - CRUD Operations for Students
+// students.php - CRUD Operations for Students with Sorting
 require_once 'config.php';
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
@@ -30,6 +30,8 @@ switch ($action) {
         sendResponse(false, 'Invalid action');
 }
 
+// ---------------- CRUD FUNCTIONS ---------------- //
+
 function createStudent() {
     global $conn;
     
@@ -59,16 +61,28 @@ function createStudent() {
 
 function readStudents() {
     global $conn;
-    
+
     $search = sanitize($_GET['search'] ?? '');
-    
+
+    // Sorting parameters
+    $allowedSortColumns = ['student_id', 'student_no', 'last_name', 'first_name', 'email', 'year_level', 'program_code'];
+    $sort = $_GET['sort'] ?? 'student_id';
+    $order = strtoupper($_GET['order'] ?? 'ASC');
+
+    if (!in_array($sort, $allowedSortColumns)) {
+        $sort = 'student_id';
+    }
+    if (!in_array($order, ['ASC', 'DESC'])) {
+        $order = 'ASC';
+    }
+
     if (!empty($search)) {
         $sql = "SELECT s.*, p.program_code, p.program_name
                 FROM tblStudents s
                 LEFT JOIN tblPrograms p ON s.program_id = p.program_id AND p.deleted_at IS NULL
                 WHERE (s.student_no LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ? OR s.email LIKE ? OR p.program_code LIKE ?)
                 AND s.deleted_at IS NULL
-                ORDER BY s.student_id";
+                ORDER BY $sort $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("sssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
@@ -77,18 +91,18 @@ function readStudents() {
                 FROM tblStudents s
                 LEFT JOIN tblPrograms p ON s.program_id = p.program_id AND p.deleted_at IS NULL
                 WHERE s.deleted_at IS NULL
-                ORDER BY s.student_id";
+                ORDER BY $sort $order";
         $stmt = $conn->prepare($sql);
     }
-    
+
     $stmt->execute();
     $result = $stmt->get_result();
     $students = [];
-    
+
     while ($row = $result->fetch_assoc()) {
         $students[] = $row;
     }
-    
+
     sendResponse(true, 'Students retrieved successfully', $students);
 }
 
@@ -139,7 +153,7 @@ function getStudent() {
     
     $sql = "SELECT s.*, p.program_code, p.program_name
             FROM tblStudents s
-            LEFT JOIN tblPrograms p ON s.program_id = p.program_id
+            LEFT JOIN tblPrograms p ON s.program_id = p.program_id AND p.deleted_at IS NULL
             WHERE s.student_id = ? AND s.deleted_at IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $student_id);
@@ -167,12 +181,24 @@ function restoreStudent() {
 
 function readDeletedStudents() {
     global $conn;
+
+    // Sorting parameters
+    $allowedSortColumns = ['student_id', 'student_no', 'last_name', 'first_name', 'email', 'year_level', 'program_code', 'deleted_at'];
+    $sort = $_GET['sort'] ?? 'deleted_at';
+    $order = strtoupper($_GET['order'] ?? 'DESC');
+
+    if (!in_array($sort, $allowedSortColumns)) {
+        $sort = 'deleted_at';
+    }
+    if (!in_array($order, ['ASC', 'DESC'])) {
+        $order = 'DESC';
+    }
     
     $sql = "SELECT s.*, p.program_code, p.program_name
             FROM tblStudents s
             LEFT JOIN tblPrograms p ON s.program_id = p.program_id
             WHERE s.deleted_at IS NOT NULL 
-            ORDER BY s.deleted_at DESC";
+            ORDER BY $sort $order";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

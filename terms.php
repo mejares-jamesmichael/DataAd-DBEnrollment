@@ -56,16 +56,18 @@ function readTerms() {
     global $conn;
     
     $search = sanitize($_GET['search'] ?? '');
+    $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
+    $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
         $sql = "SELECT * FROM tblTerms 
                 WHERE term_code LIKE ? AND deleted_at IS NULL
-                ORDER BY term_id DESC";
+                ORDER BY term_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("s", $searchTerm);
     } else {
-        $sql = "SELECT * FROM tblTerms WHERE deleted_at IS NULL ORDER BY term_id DESC";
+        $sql = "SELECT * FROM tblTerms WHERE deleted_at IS NULL ORDER BY term_id $order";
         $stmt = $conn->prepare($sql);
     }
     

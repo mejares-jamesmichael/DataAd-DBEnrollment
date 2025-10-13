@@ -63,6 +63,8 @@ function readSections() {
     global $conn;
     
     $search = sanitize($_GET['search'] ?? '');
+    $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
+    $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
         $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code, 
@@ -75,7 +77,7 @@ function readSections() {
                 LEFT JOIN tblRooms r ON s.room_id = r.room_id AND r.deleted_at IS NULL
                 WHERE (s.section_code LIKE ? OR c.course_code LIKE ? OR c.course_title LIKE ? OR t.term_code LIKE ?)
                 AND s.deleted_at IS NULL
-                ORDER BY s.section_id DESC";
+                ORDER BY s.section_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm);
@@ -89,7 +91,7 @@ function readSections() {
                 LEFT JOIN tblInstructors i ON s.instructor_id = i.instructor_id AND i.deleted_at IS NULL
                 LEFT JOIN tblRooms r ON s.room_id = r.room_id AND r.deleted_at IS NULL
                 WHERE s.deleted_at IS NULL
-                ORDER BY s.section_id DESC";
+                ORDER BY s.section_id $order";
         $stmt = $conn->prepare($sql);
     }
     

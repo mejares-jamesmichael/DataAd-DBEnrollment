@@ -60,6 +60,8 @@ function readCourses() {
     global $conn;
     
     $search = sanitize($_GET['search'] ?? '');
+    $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
+    $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
         $sql = "SELECT c.*, d.dept_name, d.dept_code
@@ -67,7 +69,7 @@ function readCourses() {
                 LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id AND d.deleted_at IS NULL
                 WHERE (c.course_code LIKE ? OR c.course_title LIKE ? OR d.dept_name LIKE ?)
                 AND c.deleted_at IS NULL
-                ORDER BY c.course_id";
+                ORDER BY c.course_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
@@ -76,7 +78,7 @@ function readCourses() {
                 FROM tblCourses c
                 LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id AND d.deleted_at IS NULL
                 WHERE c.deleted_at IS NULL
-                ORDER BY c.course_id";
+                ORDER BY c.course_id $order";
         $stmt = $conn->prepare($sql);
     }
     

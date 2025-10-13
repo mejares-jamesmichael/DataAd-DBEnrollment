@@ -57,6 +57,8 @@ function readInstructors() {
     global $conn;
     
     $search = sanitize($_GET['search'] ?? '');
+    $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
+    $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
         $sql = "SELECT i.*, d.dept_name, d.dept_code
@@ -64,7 +66,7 @@ function readInstructors() {
                 LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id AND d.deleted_at IS NULL
                 WHERE (i.last_name LIKE ? OR i.first_name LIKE ? OR i.email LIKE ? OR d.dept_name LIKE ?)
                 AND i.deleted_at IS NULL
-                ORDER BY i.instructor_id";
+                ORDER BY i.instructor_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm);
@@ -73,7 +75,7 @@ function readInstructors() {
                 FROM tblInstructors i
                 LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id AND d.deleted_at IS NULL
                 WHERE i.deleted_at IS NULL
-                ORDER BY i.instructor_id";
+                ORDER BY i.instructor_id $order";
         $stmt = $conn->prepare($sql);
     }
     

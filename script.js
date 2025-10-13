@@ -27,11 +27,61 @@ function showAlert(message, type = 'success') {
 }
 
 // ===========================================
+// SORT FUNCTIONALITY
+// ===========================================
+const sortState = {
+    departments: 'desc',
+    programs: 'desc',
+    instructors: 'desc',
+    students: 'desc',
+    courses: 'desc',
+    terms: 'desc',
+    rooms: 'desc',
+    sections: 'desc',
+    enrollments: 'desc'
+};
+
+function toggleSort(module) {
+    // Toggle sort direction
+    sortState[module] = sortState[module] === 'desc' ? 'asc' : 'desc';
+    
+    // Update button text
+    const buttons = document.querySelectorAll(`#${module} .controls button`);
+    buttons.forEach(btn => {
+        if (btn.textContent.includes('Sort')) {
+            btn.textContent = sortState[module] === 'desc' ? 'Sort ↓' : 'Sort ↑';
+        }
+    });
+    
+    // Reload data with new sort order
+    const loadFunctions = {
+        departments: loadDepartments,
+        programs: loadPrograms,
+        instructors: loadInstructors,
+        students: loadStudents,
+        courses: loadCourses,
+        terms: loadTerms,
+        rooms: loadRooms,
+        sections: loadSections,
+        enrollments: loadEnrollments
+    };
+    
+    if (loadFunctions[module]) {
+        loadFunctions[module]();
+    }
+}
+
+function getSortOrder(module) {
+    return sortState[module] || 'desc';
+}
+
+// ===========================================
 // DEPARTMENTS MODULE
 // ===========================================
 function loadDepartments() {
     const search = document.getElementById('searchDept').value;
-    fetch(`departments.php?action=read&search=${search}`)
+    const order = getSortOrder('departments');
+    fetch(`departments.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('deptTableBody');
@@ -119,7 +169,8 @@ function deleteDept(id) {
 // ===========================================
 function loadPrograms() {
     const search = document.getElementById('searchProg')?.value || '';
-    fetch(`programs.php?action=read&search=${search}`)
+    const order = getSortOrder('programs');
+    fetch(`programs.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('progTableBody');
@@ -220,7 +271,8 @@ function deleteProg(id) {
 // ===========================================
 function loadInstructors() {
     const search = document.getElementById('searchInst')?.value || '';
-    fetch(`instructors.php?action=read&search=${search}`)
+    const order = getSortOrder('instructors');
+    fetch(`instructors.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('instTableBody');
@@ -323,7 +375,8 @@ function deleteInst(id) {
 // ===========================================
 function loadStudents() {
     const search = document.getElementById('searchStud')?.value || '';
-    fetch(`students.php?action=read&search=${search}`)
+    const order = getSortOrder('students');
+    fetch(`students.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('studTableBody');
@@ -436,7 +489,8 @@ function deleteStud(id) {
 // ===========================================
 function loadCourses() {
     const search = document.getElementById('searchCourse')?.value || '';
-    fetch(`courses.php?action=read&search=${search}`)
+    const order = getSortOrder('courses');
+    fetch(`courses.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('courseTableBody');
@@ -546,7 +600,8 @@ function deleteCourse(id) {
 // ===========================================
 function loadTerms() {
     const search = document.getElementById('searchTerm')?.value || '';
-    fetch(`terms.php?action=read&search=${search}`)
+    const order = getSortOrder('terms');
+    fetch(`terms.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('termTableBody');
@@ -637,7 +692,8 @@ function deleteTerm(id) {
 // ===========================================
 function loadRooms() {
     const search = document.getElementById('searchRoom')?.value || '';
-    fetch(`rooms.php?action=read&search=${search}`)
+    const order = getSortOrder('rooms');
+    fetch(`rooms.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('roomTableBody');
@@ -728,7 +784,8 @@ function deleteRoom(id) {
 // ===========================================
 function loadSections() {
     const search = document.getElementById('searchSection')?.value || '';
-    fetch(`sections.php?action=read&search=${search}`)
+    const order = getSortOrder('sections');
+    fetch(`sections.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('sectionTableBody');
@@ -855,7 +912,8 @@ function deleteSection(id) {
 // ===========================================
 function loadEnrollments() {
     const search = document.getElementById('searchEnroll')?.value || '';
-    fetch(`enrollments.php?action=read&search=${search}`)
+    const order = getSortOrder('enrollments');
+    fetch(`enrollments.php?action=read&search=${search}&order=${order}`)
         .then(res => res.json())
         .then(data => {
             const tbody = document.getElementById('enrollTableBody');

@@ -56,17 +56,19 @@ function readRooms() {
     global $conn;
     
     $search = sanitize($_GET['search'] ?? '');
+    $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
+    $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
         $sql = "SELECT * FROM tblRooms 
                 WHERE (building LIKE ? OR room_code LIKE ?)
                 AND deleted_at IS NULL
-                ORDER BY room_id";
+                ORDER BY room_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ss", $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT * FROM tblRooms WHERE deleted_at IS NULL ORDER BY room_id";
+        $sql = "SELECT * FROM tblRooms WHERE deleted_at IS NULL ORDER BY room_id $order";
         $stmt = $conn->prepare($sql);
     }
     

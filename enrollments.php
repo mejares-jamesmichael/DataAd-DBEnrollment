@@ -59,6 +59,8 @@ function readEnrollments() {
     global $conn;
     
     $search = sanitize($_GET['search'] ?? '');
+    $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
+    $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
         $sql = "SELECT e.*, 
@@ -74,7 +76,7 @@ function readEnrollments() {
                 LEFT JOIN tblTerms t ON sec.term_id = t.term_id AND t.deleted_at IS NULL
                 WHERE (st.student_no LIKE ? OR st.first_name LIKE ? OR st.last_name LIKE ? OR c.course_code LIKE ?)
                 AND e.deleted_at IS NULL
-                ORDER BY e.enrollment_id DESC";
+                ORDER BY e.enrollment_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm);
@@ -91,7 +93,7 @@ function readEnrollments() {
                 LEFT JOIN tblCourses c ON sec.course_id = c.course_id AND c.deleted_at IS NULL
                 LEFT JOIN tblTerms t ON sec.term_id = t.term_id AND t.deleted_at IS NULL
                 WHERE e.deleted_at IS NULL
-                ORDER BY e.enrollment_id DESC";
+                ORDER BY e.enrollment_id $order";
         $stmt = $conn->prepare($sql);
     }
     
