@@ -1081,6 +1081,291 @@ function exportAllToExcel() {
 }
 
 // ===========================================
+// TRASH MODAL FUNCTIONS
+// ===========================================
+let currentTrashModule = '';
+
+function openTrashModal(module) {
+    currentTrashModule = module;
+    document.getElementById('trashModal').classList.add('active');
+    loadDeletedRecords(module);
+}
+
+function closeTrashModal() {
+    document.getElementById('trashModal').classList.remove('active');
+    currentTrashModule = '';
+}
+
+function loadDeletedRecords(module) {
+    const config = {
+        departments: {
+            file: 'departments.php',
+            title: 'Deleted Departments',
+            columns: ['ID', 'Code', 'Name', 'Deleted At', 'Actions'],
+            render: (d) => `
+                <tr>
+                    <td>${d.dept_id}</td>
+                    <td>${d.dept_code}</td>
+                    <td>${d.dept_name}</td>
+                    <td>${formatDateTime(d.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('departments', ${d.dept_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('departments', ${d.dept_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        },
+        programs: {
+            file: 'programs.php',
+            title: 'Deleted Programs',
+            columns: ['ID', 'Code', 'Name', 'Department', 'Deleted At', 'Actions'],
+            render: (p) => `
+                <tr>
+                    <td>${p.program_id}</td>
+                    <td>${p.program_code}</td>
+                    <td>${p.program_name}</td>
+                    <td>${p.dept_name || '-'}</td>
+                    <td>${formatDateTime(p.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('programs', ${p.program_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('programs', ${p.program_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        },
+        instructors: {
+            file: 'instructors.php',
+            title: 'Deleted Instructors',
+            columns: ['ID', 'Name', 'Email', 'Department', 'Deleted At', 'Actions'],
+            render: (i) => `
+                <tr>
+                    <td>${i.instructor_id}</td>
+                    <td>${i.first_name} ${i.last_name}</td>
+                    <td>${i.email}</td>
+                    <td>${i.dept_name || '-'}</td>
+                    <td>${formatDateTime(i.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('instructors', ${i.instructor_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('instructors', ${i.instructor_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        },
+        students: {
+            file: 'students.php',
+            title: 'Deleted Students',
+            columns: ['ID', 'Student No', 'Name', 'Email', 'Program', 'Deleted At', 'Actions'],
+            render: (s) => `
+                <tr>
+                    <td>${s.student_id}</td>
+                    <td>${s.student_no}</td>
+                    <td>${s.first_name} ${s.last_name}</td>
+                    <td>${s.email}</td>
+                    <td>${s.program_code || '-'}</td>
+                    <td>${formatDateTime(s.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('students', ${s.student_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('students', ${s.student_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        },
+        courses: {
+            file: 'courses.php',
+            title: 'Deleted Courses',
+            columns: ['ID', 'Code', 'Title', 'Units', 'Department', 'Deleted At', 'Actions'],
+            render: (c) => `
+                <tr>
+                    <td>${c.course_id}</td>
+                    <td>${c.course_code}</td>
+                    <td>${c.course_title}</td>
+                    <td>${c.units}</td>
+                    <td>${c.dept_name || '-'}</td>
+                    <td>${formatDateTime(c.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('courses', ${c.course_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('courses', ${c.course_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        },
+        terms: {
+            file: 'terms.php',
+            title: 'Deleted Terms',
+            columns: ['ID', 'Code', 'Start Date', 'End Date', 'Deleted At', 'Actions'],
+            render: (t) => `
+                <tr>
+                    <td>${t.term_id}</td>
+                    <td>${t.term_code}</td>
+                    <td>${t.start_date}</td>
+                    <td>${t.end_date}</td>
+                    <td>${formatDateTime(t.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('terms', ${t.term_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('terms', ${t.term_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        },
+        rooms: {
+            file: 'rooms.php',
+            title: 'Deleted Rooms',
+            columns: ['ID', 'Building', 'Room Code', 'Capacity', 'Deleted At', 'Actions'],
+            render: (r) => `
+                <tr>
+                    <td>${r.room_id}</td>
+                    <td>${r.building}</td>
+                    <td>${r.room_code}</td>
+                    <td>${r.capacity}</td>
+                    <td>${formatDateTime(r.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('rooms', ${r.room_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('rooms', ${r.room_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        },
+        sections: {
+            file: 'sections.php',
+            title: 'Deleted Sections',
+            columns: ['ID', 'Code', 'Course', 'Term', 'Instructor', 'Deleted At', 'Actions'],
+            render: (s) => `
+                <tr>
+                    <td>${s.section_id}</td>
+                    <td>${s.section_code}</td>
+                    <td>${s.course_code || '-'}</td>
+                    <td>${s.term_code || '-'}</td>
+                    <td>${s.instructor_name || '-'}</td>
+                    <td>${formatDateTime(s.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('sections', ${s.section_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('sections', ${s.section_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        },
+        enrollments: {
+            file: 'enrollments.php',
+            title: 'Deleted Enrollments',
+            columns: ['ID', 'Student', 'Course', 'Section', 'Date Enrolled', 'Deleted At', 'Actions'],
+            render: (e) => `
+                <tr>
+                    <td>${e.enrollment_id}</td>
+                    <td>${e.student_name || '-'} (${e.student_no || '-'})</td>
+                    <td>${e.course_code || '-'}</td>
+                    <td>${e.section_code || '-'}</td>
+                    <td>${e.date_enrolled}</td>
+                    <td>${formatDateTime(e.deleted_at)}</td>
+                    <td>
+                        <button onclick="restoreRecord('enrollments', ${e.enrollment_id})">Restore</button>
+                        <button onclick="permanentDeleteRecord('enrollments', ${e.enrollment_id})">Delete Permanently</button>
+                    </td>
+                </tr>
+            `
+        }
+    };
+
+    const moduleConfig = config[module];
+    if (!moduleConfig) return;
+
+    document.getElementById('trashModalTitle').textContent = moduleConfig.title;
+    
+    fetch(`${moduleConfig.file}?action=readDeleted`)
+        .then(res => res.json())
+        .then(data => {
+            const thead = document.getElementById('trashTableHead');
+            const tbody = document.getElementById('trashTableBody');
+            
+            // Set table headers
+            thead.innerHTML = '<tr>' + moduleConfig.columns.map(col => `<th>${col}</th>`).join('') + '</tr>';
+            
+            // Set table body
+            if (data.success && data.data.length > 0) {
+                tbody.innerHTML = data.data.map(moduleConfig.render).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="${moduleConfig.columns.length}">No deleted records found</td></tr>`;
+            }
+        })
+        .catch(err => {
+            showAlert('Error loading deleted records', 'error');
+            console.error(err);
+        });
+}
+
+function restoreRecord(module, id) {
+    if (!confirm('Restore this record?')) return;
+
+    const moduleMap = {
+        departments: { file: 'departments.php', idField: 'dept_id', reload: loadDepartments },
+        programs: { file: 'programs.php', idField: 'program_id', reload: loadPrograms },
+        instructors: { file: 'instructors.php', idField: 'instructor_id', reload: loadInstructors },
+        students: { file: 'students.php', idField: 'student_id', reload: loadStudents },
+        courses: { file: 'courses.php', idField: 'course_id', reload: loadCourses },
+        terms: { file: 'terms.php', idField: 'term_id', reload: loadTerms },
+        rooms: { file: 'rooms.php', idField: 'room_id', reload: loadRooms },
+        sections: { file: 'sections.php', idField: 'section_id', reload: loadSections },
+        enrollments: { file: 'enrollments.php', idField: 'enrollment_id', reload: loadEnrollments }
+    };
+
+    const config = moduleMap[module];
+    const formData = new FormData();
+    formData.append('action', 'restore');
+    formData.append(config.idField, id);
+
+    fetch(config.file, { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'error');
+            if (data.success) {
+                loadDeletedRecords(module);
+                config.reload();
+            }
+        });
+}
+
+function permanentDeleteRecord(module, id) {
+    if (!confirm('PERMANENTLY delete this record? This action cannot be undone!')) return;
+
+    const moduleMap = {
+        departments: { file: 'departments.php', idField: 'dept_id' },
+        programs: { file: 'programs.php', idField: 'program_id' },
+        instructors: { file: 'instructors.php', idField: 'instructor_id' },
+        students: { file: 'students.php', idField: 'student_id' },
+        courses: { file: 'courses.php', idField: 'course_id' },
+        terms: { file: 'terms.php', idField: 'term_id' },
+        rooms: { file: 'rooms.php', idField: 'room_id' },
+        sections: { file: 'sections.php', idField: 'section_id' },
+        enrollments: { file: 'enrollments.php', idField: 'enrollment_id' }
+    };
+
+    const config = moduleMap[module];
+    const formData = new FormData();
+    formData.append('action', 'permanentDelete');
+    formData.append(config.idField, id);
+
+    fetch(config.file, { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            showAlert(data.message, data.success ? 'success' : 'error');
+            if (data.success) {
+                loadDeletedRecords(module);
+            }
+        });
+}
+
+function formatDateTime(datetime) {
+    if (!datetime) return '-';
+    const date = new Date(datetime);
+    return date.toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// ===========================================
 // INITIALIZATION
 // ===========================================
 window.addEventListener('DOMContentLoaded', function() {

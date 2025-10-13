@@ -38,6 +38,31 @@ function sendResponse($success, $message, $data = null) {
     exit;
 }
 
+// Soft Delete Helper Functions
+function softDelete($table, $idColumn, $id) {
+    global $conn;
+    $sql = "UPDATE $table SET deleted_at = NOW() WHERE $idColumn = ? AND deleted_at IS NULL";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    return $stmt->execute();
+}
+
+function restoreDeleted($table, $idColumn, $id) {
+    global $conn;
+    $sql = "UPDATE $table SET deleted_at = NULL WHERE $idColumn = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    return $stmt->execute();
+}
+
+function permanentDelete($table, $idColumn, $id) {
+    global $conn;
+    $sql = "DELETE FROM $table WHERE $idColumn = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id);
+    return $stmt->execute();
+}
+
 // Enable error reporting for development (disable in production)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

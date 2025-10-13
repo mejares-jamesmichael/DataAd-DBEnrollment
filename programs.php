@@ -20,6 +20,12 @@ switch ($action) {
     case 'getOne':
         getProgram();
         break;
+    case 'restore':
+        restoreProgram();
+        break;
+    case 'readDeleted':
+        readDeletedPrograms();
+        break;
     default:
         sendResponse(false, 'Invalid action');
 }
@@ -54,8 +60,9 @@ function readPrograms() {
     if (!empty($search)) {
         $sql = "SELECT p.*, d.dept_name 
                 FROM tblPrograms p
-                LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id
-                WHERE p.program_code LIKE ? OR p.program_name LIKE ? OR d.dept_name LIKE ?
+                LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id AND d.deleted_at IS NULL
+                WHERE (p.program_code LIKE ? OR p.program_name LIKE ? OR d.dept_name LIKE ?)
+                AND p.deleted_at IS NULL
                 ORDER BY p.program_id";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
@@ -63,7 +70,8 @@ function readPrograms() {
     } else {
         $sql = "SELECT p.*, d.dept_name 
                 FROM tblPrograms p
-                LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id
+                LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id AND d.deleted_at IS NULL
+                WHERE p.deleted_at IS NULL
                 ORDER BY p.program_id";
         $stmt = $conn->prepare($sql);
     }
@@ -107,14 +115,10 @@ function deleteProgram() {
     
     $program_id = intval($_POST['program_id']);
     
-    $sql = "DELETE FROM tblPrograms WHERE program_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $program_id);
-    
-    if ($stmt->execute()) {
+    if (softDelete('tblPrograms', 'program_id', $program_id)) {
         sendResponse(true, 'Program deleted successfully');
     } else {
-        sendResponse(false, 'Error: ' . $stmt->error);
+        sendResponse(false, 'Error deleting program');
     }
 }
 
@@ -126,7 +130,7 @@ function getProgram() {
     $sql = "SELECT p.*, d.dept_name 
             FROM tblPrograms p
             LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id
-            WHERE p.program_id = ?";
+            WHERE p.program_id = ? AND p.deleted_at IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $program_id);
     $stmt->execute();
@@ -137,5 +141,37 @@ function getProgram() {
     } else {
         sendResponse(false, 'Program not found');
     }
+}
+
+function restoreProgram() {
+    global $conn;
+    
+    $program_id = intval($_POST['program_id']);
+    
+    if (restoreDeleted('tblPrograms', 'program_id', $program_id)) {
+        sendResponse(true, 'Program restored successfully');
+    } else {
+        sendResponse(false, 'Error restoring program');
+    }
+}
+
+function readDeletedPrograms() {
+    global $conn;
+    
+    $sql = "SELECT p.*, d.dept_name 
+            FROM tblPrograms p
+            LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id
+            WHERE p.deleted_at IS NOT NULL 
+            ORDER BY p.deleted_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $programs = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $programs[] = $row;
+    }
+    
+    sendResponse(true, 'Deleted programs retrieved successfully', $programs);
 }
 ?>

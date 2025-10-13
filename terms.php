@@ -20,6 +20,12 @@ switch ($action) {
     case 'getOne':
         getTerm();
         break;
+    case 'restore':
+        restoreTerm();
+        break;
+    case 'readDeleted':
+        readDeletedTerms();
+        break;
     default:
         sendResponse(false, 'Invalid action');
 }
@@ -53,13 +59,13 @@ function readTerms() {
     
     if (!empty($search)) {
         $sql = "SELECT * FROM tblTerms 
-                WHERE term_code LIKE ? 
+                WHERE term_code LIKE ? AND deleted_at IS NULL
                 ORDER BY term_id DESC";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("s", $searchTerm);
     } else {
-        $sql = "SELECT * FROM tblTerms ORDER BY term_id DESC";
+        $sql = "SELECT * FROM tblTerms WHERE deleted_at IS NULL ORDER BY term_id DESC";
         $stmt = $conn->prepare($sql);
     }
     
@@ -102,14 +108,10 @@ function deleteTerm() {
     
     $term_id = intval($_POST['term_id']);
     
-    $sql = "DELETE FROM tblTerms WHERE term_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $term_id);
-    
-    if ($stmt->execute()) {
+    if (softDelete('tblTerms', 'term_id', $term_id)) {
         sendResponse(true, 'Term deleted successfully');
     } else {
-        sendResponse(false, 'Error: ' . $stmt->error);
+        sendResponse(false, 'Error deleting term');
     }
 }
 
@@ -118,7 +120,7 @@ function getTerm() {
     
     $term_id = intval($_GET['term_id']);
     
-    $sql = "SELECT * FROM tblTerms WHERE term_id = ?";
+    $sql = "SELECT * FROM tblTerms WHERE term_id = ? AND deleted_at IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $term_id);
     $stmt->execute();
@@ -129,5 +131,33 @@ function getTerm() {
     } else {
         sendResponse(false, 'Term not found');
     }
+}
+
+function restoreTerm() {
+    global $conn;
+    
+    $term_id = intval($_POST['term_id']);
+    
+    if (restoreDeleted('tblTerms', 'term_id', $term_id)) {
+        sendResponse(true, 'Term restored successfully');
+    } else {
+        sendResponse(false, 'Error restoring term');
+    }
+}
+
+function readDeletedTerms() {
+    global $conn;
+    
+    $sql = "SELECT * FROM tblTerms WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $terms = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $terms[] = $row;
+    }
+    
+    sendResponse(true, 'Deleted terms retrieved successfully', $terms);
 }
 ?>

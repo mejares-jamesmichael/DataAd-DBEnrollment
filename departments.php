@@ -20,6 +20,15 @@ switch ($action) {
     case 'getOne':
         getDepartment();
         break;
+    case 'restore':
+        restoreDepartment();
+        break;
+    case 'readDeleted':
+        readDeletedDepartments();
+        break;
+    case 'permanentDelete':
+        permanentDeleteDepartment();
+        break;
     default:
         sendResponse(false, 'Invalid action');
 }
@@ -52,13 +61,14 @@ function readDepartments() {
     
     if (!empty($search)) {
         $sql = "SELECT * FROM tblDepartments 
-                WHERE dept_code LIKE ? OR dept_name LIKE ? 
+                WHERE (dept_code LIKE ? OR dept_name LIKE ?) 
+                AND deleted_at IS NULL
                 ORDER BY dept_id";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ss", $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT * FROM tblDepartments ORDER BY dept_id";
+        $sql = "SELECT * FROM tblDepartments WHERE deleted_at IS NULL ORDER BY dept_id";
         $stmt = $conn->prepare($sql);
     }
     
@@ -100,14 +110,10 @@ function deleteDepartment() {
     
     $dept_id = intval($_POST['dept_id']);
     
-    $sql = "DELETE FROM tblDepartments WHERE dept_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $dept_id);
-    
-    if ($stmt->execute()) {
+    if (softDelete('tblDepartments', 'dept_id', $dept_id)) {
         sendResponse(true, 'Department deleted successfully');
     } else {
-        sendResponse(false, 'Error: ' . $stmt->error);
+        sendResponse(false, 'Error deleting department');
     }
 }
 
@@ -116,7 +122,7 @@ function getDepartment() {
     
     $dept_id = intval($_GET['dept_id']);
     
-    $sql = "SELECT * FROM tblDepartments WHERE dept_id = ?";
+    $sql = "SELECT * FROM tblDepartments WHERE dept_id = ? AND deleted_at IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $dept_id);
     $stmt->execute();
@@ -126,6 +132,46 @@ function getDepartment() {
         sendResponse(true, 'Department retrieved successfully', $row);
     } else {
         sendResponse(false, 'Department not found');
+    }
+}
+
+function restoreDepartment() {
+    global $conn;
+    
+    $dept_id = intval($_POST['dept_id']);
+    
+    if (restoreDeleted('tblDepartments', 'dept_id', $dept_id)) {
+        sendResponse(true, 'Department restored successfully');
+    } else {
+        sendResponse(false, 'Error restoring department');
+    }
+}
+
+function readDeletedDepartments() {
+    global $conn;
+    
+    $sql = "SELECT * FROM tblDepartments WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $departments = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $departments[] = $row;
+    }
+    
+    sendResponse(true, 'Deleted departments retrieved successfully', $departments);
+}
+
+function permanentDeleteDepartment() {
+    global $conn;
+    
+    $dept_id = intval($_POST['dept_id']);
+    
+    if (permanentDelete('tblDepartments', 'dept_id', $dept_id)) {
+        sendResponse(true, 'Department permanently deleted');
+    } else {
+        sendResponse(false, 'Error permanently deleting department');
     }
 }
 ?>

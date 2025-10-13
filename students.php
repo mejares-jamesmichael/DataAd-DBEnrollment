@@ -20,6 +20,12 @@ switch ($action) {
     case 'getOne':
         getStudent();
         break;
+    case 'restore':
+        restoreStudent();
+        break;
+    case 'readDeleted':
+        readDeletedStudents();
+        break;
     default:
         sendResponse(false, 'Invalid action');
 }
@@ -59,8 +65,9 @@ function readStudents() {
     if (!empty($search)) {
         $sql = "SELECT s.*, p.program_code, p.program_name
                 FROM tblStudents s
-                LEFT JOIN tblPrograms p ON s.program_id = p.program_id
-                WHERE s.student_no LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ? OR s.email LIKE ? OR p.program_code LIKE ?
+                LEFT JOIN tblPrograms p ON s.program_id = p.program_id AND p.deleted_at IS NULL
+                WHERE (s.student_no LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ? OR s.email LIKE ? OR p.program_code LIKE ?)
+                AND s.deleted_at IS NULL
                 ORDER BY s.student_id";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
@@ -68,7 +75,8 @@ function readStudents() {
     } else {
         $sql = "SELECT s.*, p.program_code, p.program_name
                 FROM tblStudents s
-                LEFT JOIN tblPrograms p ON s.program_id = p.program_id
+                LEFT JOIN tblPrograms p ON s.program_id = p.program_id AND p.deleted_at IS NULL
+                WHERE s.deleted_at IS NULL
                 ORDER BY s.student_id";
         $stmt = $conn->prepare($sql);
     }
@@ -117,14 +125,10 @@ function deleteStudent() {
     
     $student_id = intval($_POST['student_id']);
     
-    $sql = "DELETE FROM tblStudents WHERE student_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $student_id);
-    
-    if ($stmt->execute()) {
+    if (softDelete('tblStudents', 'student_id', $student_id)) {
         sendResponse(true, 'Student deleted successfully');
     } else {
-        sendResponse(false, 'Error: ' . $stmt->error);
+        sendResponse(false, 'Error deleting student');
     }
 }
 
@@ -136,7 +140,7 @@ function getStudent() {
     $sql = "SELECT s.*, p.program_code, p.program_name
             FROM tblStudents s
             LEFT JOIN tblPrograms p ON s.program_id = p.program_id
-            WHERE s.student_id = ?";
+            WHERE s.student_id = ? AND s.deleted_at IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $student_id);
     $stmt->execute();
@@ -147,5 +151,37 @@ function getStudent() {
     } else {
         sendResponse(false, 'Student not found');
     }
+}
+
+function restoreStudent() {
+    global $conn;
+    
+    $student_id = intval($_POST['student_id']);
+    
+    if (restoreDeleted('tblStudents', 'student_id', $student_id)) {
+        sendResponse(true, 'Student restored successfully');
+    } else {
+        sendResponse(false, 'Error restoring student');
+    }
+}
+
+function readDeletedStudents() {
+    global $conn;
+    
+    $sql = "SELECT s.*, p.program_code, p.program_name
+            FROM tblStudents s
+            LEFT JOIN tblPrograms p ON s.program_id = p.program_id
+            WHERE s.deleted_at IS NOT NULL 
+            ORDER BY s.deleted_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $students = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $students[] = $row;
+    }
+    
+    sendResponse(true, 'Deleted students retrieved successfully', $students);
 }
 ?>

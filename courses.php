@@ -20,6 +20,12 @@ switch ($action) {
     case 'getOne':
         getCourse();
         break;
+    case 'restore':
+        restoreCourse();
+        break;
+    case 'readDeleted':
+        readDeletedCourses();
+        break;
     default:
         sendResponse(false, 'Invalid action');
 }
@@ -58,8 +64,9 @@ function readCourses() {
     if (!empty($search)) {
         $sql = "SELECT c.*, d.dept_name, d.dept_code
                 FROM tblCourses c
-                LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id
-                WHERE c.course_code LIKE ? OR c.course_title LIKE ? OR d.dept_name LIKE ?
+                LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id AND d.deleted_at IS NULL
+                WHERE (c.course_code LIKE ? OR c.course_title LIKE ? OR d.dept_name LIKE ?)
+                AND c.deleted_at IS NULL
                 ORDER BY c.course_id";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
@@ -67,7 +74,8 @@ function readCourses() {
     } else {
         $sql = "SELECT c.*, d.dept_name, d.dept_code
                 FROM tblCourses c
-                LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id
+                LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id AND d.deleted_at IS NULL
+                WHERE c.deleted_at IS NULL
                 ORDER BY c.course_id";
         $stmt = $conn->prepare($sql);
     }
@@ -115,14 +123,10 @@ function deleteCourse() {
     
     $course_id = intval($_POST['course_id']);
     
-    $sql = "DELETE FROM tblCourses WHERE course_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $course_id);
-    
-    if ($stmt->execute()) {
+    if (softDelete('tblCourses', 'course_id', $course_id)) {
         sendResponse(true, 'Course deleted successfully');
     } else {
-        sendResponse(false, 'Error: ' . $stmt->error);
+        sendResponse(false, 'Error deleting course');
     }
 }
 
@@ -134,7 +138,7 @@ function getCourse() {
     $sql = "SELECT c.*, d.dept_name, d.dept_code
             FROM tblCourses c
             LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id
-            WHERE c.course_id = ?";
+            WHERE c.course_id = ? AND c.deleted_at IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $course_id);
     $stmt->execute();
@@ -145,5 +149,37 @@ function getCourse() {
     } else {
         sendResponse(false, 'Course not found');
     }
+}
+
+function restoreCourse() {
+    global $conn;
+    
+    $course_id = intval($_POST['course_id']);
+    
+    if (restoreDeleted('tblCourses', 'course_id', $course_id)) {
+        sendResponse(true, 'Course restored successfully');
+    } else {
+        sendResponse(false, 'Error restoring course');
+    }
+}
+
+function readDeletedCourses() {
+    global $conn;
+    
+    $sql = "SELECT c.*, d.dept_name, d.dept_code
+            FROM tblCourses c
+            LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id
+            WHERE c.deleted_at IS NOT NULL 
+            ORDER BY c.deleted_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $courses = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $courses[] = $row;
+    }
+    
+    sendResponse(true, 'Deleted courses retrieved successfully', $courses);
 }
 ?>

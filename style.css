@@ -118,6 +118,18 @@ main {
     border-color: #1e7e34;
 }
 
+/* Trash button styling */
+.controls button:nth-of-type(5) {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.controls button:nth-of-type(5):hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
 /* Excel export specific styling */
 .excel-export {
     background-color: #28a745 !important;
@@ -167,6 +179,11 @@ td button {
 
 td button:first-child {
     background: #ffc107;
+}
+
+td button:nth-child(2) {
+    background: #28a745;
+    color: white;
 }
 
 td button:last-child {

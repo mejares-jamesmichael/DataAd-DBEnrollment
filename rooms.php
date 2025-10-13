@@ -20,6 +20,12 @@ switch ($action) {
     case 'getOne':
         getRoom();
         break;
+    case 'restore':
+        restoreRoom();
+        break;
+    case 'readDeleted':
+        readDeletedRooms();
+        break;
     default:
         sendResponse(false, 'Invalid action');
 }
@@ -53,13 +59,14 @@ function readRooms() {
     
     if (!empty($search)) {
         $sql = "SELECT * FROM tblRooms 
-                WHERE building LIKE ? OR room_code LIKE ?
+                WHERE (building LIKE ? OR room_code LIKE ?)
+                AND deleted_at IS NULL
                 ORDER BY room_id";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ss", $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT * FROM tblRooms ORDER BY room_id";
+        $sql = "SELECT * FROM tblRooms WHERE deleted_at IS NULL ORDER BY room_id";
         $stmt = $conn->prepare($sql);
     }
     
@@ -102,14 +109,10 @@ function deleteRoom() {
     
     $room_id = intval($_POST['room_id']);
     
-    $sql = "DELETE FROM tblRooms WHERE room_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $room_id);
-    
-    if ($stmt->execute()) {
+    if (softDelete('tblRooms', 'room_id', $room_id)) {
         sendResponse(true, 'Room deleted successfully');
     } else {
-        sendResponse(false, 'Error: ' . $stmt->error);
+        sendResponse(false, 'Error deleting room');
     }
 }
 
@@ -118,7 +121,7 @@ function getRoom() {
     
     $room_id = intval($_GET['room_id']);
     
-    $sql = "SELECT * FROM tblRooms WHERE room_id = ?";
+    $sql = "SELECT * FROM tblRooms WHERE room_id = ? AND deleted_at IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $room_id);
     $stmt->execute();
@@ -129,5 +132,33 @@ function getRoom() {
     } else {
         sendResponse(false, 'Room not found');
     }
+}
+
+function restoreRoom() {
+    global $conn;
+    
+    $room_id = intval($_POST['room_id']);
+    
+    if (restoreDeleted('tblRooms', 'room_id', $room_id)) {
+        sendResponse(true, 'Room restored successfully');
+    } else {
+        sendResponse(false, 'Error restoring room');
+    }
+}
+
+function readDeletedRooms() {
+    global $conn;
+    
+    $sql = "SELECT * FROM tblRooms WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $rooms = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $rooms[] = $row;
+    }
+    
+    sendResponse(true, 'Deleted rooms retrieved successfully', $rooms);
 }
 ?>

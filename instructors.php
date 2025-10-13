@@ -20,6 +20,12 @@ switch ($action) {
     case 'getOne':
         getInstructor();
         break;
+    case 'restore':
+        restoreInstructor();
+        break;
+    case 'readDeleted':
+        readDeletedInstructors();
+        break;
     default:
         sendResponse(false, 'Invalid action');
 }
@@ -55,8 +61,9 @@ function readInstructors() {
     if (!empty($search)) {
         $sql = "SELECT i.*, d.dept_name, d.dept_code
                 FROM tblInstructors i
-                LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id
-                WHERE i.last_name LIKE ? OR i.first_name LIKE ? OR i.email LIKE ? OR d.dept_name LIKE ?
+                LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id AND d.deleted_at IS NULL
+                WHERE (i.last_name LIKE ? OR i.first_name LIKE ? OR i.email LIKE ? OR d.dept_name LIKE ?)
+                AND i.deleted_at IS NULL
                 ORDER BY i.instructor_id";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
@@ -64,7 +71,8 @@ function readInstructors() {
     } else {
         $sql = "SELECT i.*, d.dept_name, d.dept_code
                 FROM tblInstructors i
-                LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id
+                LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id AND d.deleted_at IS NULL
+                WHERE i.deleted_at IS NULL
                 ORDER BY i.instructor_id";
         $stmt = $conn->prepare($sql);
     }
@@ -109,14 +117,10 @@ function deleteInstructor() {
     
     $instructor_id = intval($_POST['instructor_id']);
     
-    $sql = "DELETE FROM tblInstructors WHERE instructor_id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $instructor_id);
-    
-    if ($stmt->execute()) {
+    if (softDelete('tblInstructors', 'instructor_id', $instructor_id)) {
         sendResponse(true, 'Instructor deleted successfully');
     } else {
-        sendResponse(false, 'Error: ' . $stmt->error);
+        sendResponse(false, 'Error deleting instructor');
     }
 }
 
@@ -128,7 +132,7 @@ function getInstructor() {
     $sql = "SELECT i.*, d.dept_name, d.dept_code
             FROM tblInstructors i
             LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id
-            WHERE i.instructor_id = ?";
+            WHERE i.instructor_id = ? AND i.deleted_at IS NULL";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $instructor_id);
     $stmt->execute();
@@ -139,5 +143,37 @@ function getInstructor() {
     } else {
         sendResponse(false, 'Instructor not found');
     }
+}
+
+function restoreInstructor() {
+    global $conn;
+    
+    $instructor_id = intval($_POST['instructor_id']);
+    
+    if (restoreDeleted('tblInstructors', 'instructor_id', $instructor_id)) {
+        sendResponse(true, 'Instructor restored successfully');
+    } else {
+        sendResponse(false, 'Error restoring instructor');
+    }
+}
+
+function readDeletedInstructors() {
+    global $conn;
+    
+    $sql = "SELECT i.*, d.dept_name, d.dept_code
+            FROM tblInstructors i
+            LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id
+            WHERE i.deleted_at IS NOT NULL 
+            ORDER BY i.deleted_at DESC";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $instructors = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $instructors[] = $row;
+    }
+    
+    sendResponse(true, 'Deleted instructors retrieved successfully', $instructors);
 }
 ?>
