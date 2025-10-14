@@ -9,35 +9,39 @@
 </head>
 <body>
     <div class="container">
+        <!-- Header Section -->
         <header>
             <h1>DATABASE ADMINISTRATION</h1>
             <p>Database: dbenrollment</p>
         </header>
 
-        <nav>
-            <button onclick="showSection('departments')" class="active">Departments</button>
-            <button onclick="showSection('programs')">Programs</button>
-            <button onclick="showSection('instructors')">Instructors</button>
-            <button onclick="showSection('students')">Students</button>
-            <button onclick="showSection('courses')">Courses</button>
-            <button onclick="showSection('terms')">Terms</button>
-            <button onclick="showSection('rooms')">Rooms</button>
-            <button onclick="showSection('sections')">Sections</button>
-            <button onclick="showSection('enrollments')">Enrollments</button>
+        <!-- Navigation -->
+        <nav role="navigation" aria-label="Main navigation">
+            <button onclick="showSection('departments')" class="active" data-section="departments">Departments</button>
+            <button onclick="showSection('programs')" data-section="programs">Programs</button>
+            <button onclick="showSection('instructors')" data-section="instructors">Instructors</button>
+            <button onclick="showSection('students')" data-section="students">Students</button>
+            <button onclick="showSection('courses')" data-section="courses">Courses</button>
+            <button onclick="showSection('terms')" data-section="terms">Terms</button>
+            <button onclick="showSection('rooms')" data-section="rooms">Rooms</button>
+            <button onclick="showSection('sections')" data-section="sections">Sections</button>
+            <button onclick="showSection('enrollments')" data-section="enrollments">Enrollments</button>
         </nav>
 
-        <main>
-            <div id="alert" class="alert"></div>
+        <!-- Main Content -->
+        <main role="main">
+            <!-- Alert System -->
+            <div id="alert" class="alert" role="alert"></div>
 
             <!-- Departments Section -->
-            <section id="departments" class="section active">
+            <section id="departments" class="section active" data-module="departments">
                 <div class="controls">
-                    <input type="text" id="searchDept" placeholder="Search..." onkeyup="loadDepartments()">
+                    <input type="text" id="searchDept" placeholder="Search departments..." onkeyup="loadDepartments()" aria-label="Search departments">
                     <button onclick="openDeptModal()">Add Department</button>
-                    <button onclick="exportToExcel('departments', 'Departments')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('departments', 'Departments')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('departments')">Sort ↓</button>
                     <button onclick="openTrashModal('departments')">Trash</button>
+                    <button onclick="toggleSort('departments')">Sort ↓</button>
                 </div>
                 <table id="departmentsTable">
                     <thead>
@@ -55,14 +59,14 @@
             </section>
 
             <!-- Programs Section -->
-            <section id="programs" class="section">
+            <section id="programs" class="section" data-module="programs">
                 <div class="controls">
-                    <input type="text" id="searchProg" placeholder="Search..." onkeyup="loadPrograms()">
+                    <input type="text" id="searchProg" placeholder="Search programs..." onkeyup="loadPrograms()" aria-label="Search programs">
                     <button onclick="openProgModal()">Add Program</button>
-                    <button onclick="exportToExcel('programs', 'Programs')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('programs', 'Programs')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('programs')">Sort ↓</button>
                     <button onclick="openTrashModal('programs')">Trash</button>
+                    <button onclick="toggleSort('programs')">Sort ↓</button>
                 </div>
                 <table id="programsTable">
                     <thead>
@@ -81,14 +85,14 @@
             </section>
 
             <!-- Instructors Section -->
-            <section id="instructors" class="section">
+            <section id="instructors" class="section" data-module="instructors">
                 <div class="controls">
-                    <input type="text" id="searchInst" placeholder="Search..." onkeyup="loadInstructors()">
+                    <input type="text" id="searchInst" placeholder="Search instructors..." onkeyup="loadInstructors()" aria-label="Search instructors">
                     <button onclick="openInstModal()">Add Instructor</button>
-                    <button onclick="exportToExcel('instructors', 'Instructors')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('instructors', 'Instructors')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('instructors')">Sort ↓</button>
                     <button onclick="openTrashModal('instructors')">Trash</button>
+                    <button onclick="toggleSort('instructors')">Sort ↓</button>
                 </div>
                 <table id="instructorsTable">
                     <thead>
@@ -107,14 +111,14 @@
             </section>
 
             <!-- Students Section -->
-            <section id="students" class="section">
+            <section id="students" class="section" data-module="students">
                 <div class="controls">
-                    <input type="text" id="searchStud" placeholder="Search..." onkeyup="loadStudents()">
+                    <input type="text" id="searchStud" placeholder="Search students..." onkeyup="loadStudents()" aria-label="Search students">
                     <button onclick="openStudModal()">Add Student</button>
-                    <button onclick="exportToExcel('students', 'Students')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('students', 'Students')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('students')">Sort ↓</button>
                     <button onclick="openTrashModal('students')">Trash</button>
+                    <button onclick="toggleSort('students')">Sort ↓</button>
                 </div>
                 <table id="studentsTable">
                     <thead>
@@ -135,14 +139,14 @@
             </section>
 
             <!-- Courses Section -->
-            <section id="courses" class="section">
+            <section id="courses" class="section" data-module="courses">
                 <div class="controls">
-                    <input type="text" id="searchCourse" placeholder="Search..." onkeyup="loadCourses()">
+                    <input type="text" id="searchCourse" placeholder="Search courses..." onkeyup="loadCourses()" aria-label="Search courses">
                     <button onclick="openCourseModal()">Add Course</button>
-                    <button onclick="exportToExcel('courses', 'Courses')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('courses', 'Courses')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('courses')">Sort ↓</button>
                     <button onclick="openTrashModal('courses')">Trash</button>
+                    <button onclick="toggleSort('courses')">Sort ↓</button>
                 </div>
                 <table id="coursesTable">
                     <thead>
@@ -164,14 +168,14 @@
             </section>
 
             <!-- Terms Section -->
-            <section id="terms" class="section">
+            <section id="terms" class="section" data-module="terms">
                 <div class="controls">
-                    <input type="text" id="searchTerm" placeholder="Search..." onkeyup="loadTerms()">
+                    <input type="text" id="searchTerm" placeholder="Search terms..." onkeyup="loadTerms()" aria-label="Search terms">
                     <button onclick="openTermModal()">Add Term</button>
-                    <button onclick="exportToExcel('terms', 'Terms')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('terms', 'Terms')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('terms')">Sort ↓</button>
                     <button onclick="openTrashModal('terms')">Trash</button>
+                    <button onclick="toggleSort('terms')">Sort ↓</button>
                 </div>
                 <table id="termsTable">
                     <thead>
@@ -190,14 +194,14 @@
             </section>
 
             <!-- Rooms Section -->
-            <section id="rooms" class="section">
+            <section id="rooms" class="section" data-module="rooms">
                 <div class="controls">
-                    <input type="text" id="searchRoom" placeholder="Search..." onkeyup="loadRooms()">
+                    <input type="text" id="searchRoom" placeholder="Search rooms..." onkeyup="loadRooms()" aria-label="Search rooms">
                     <button onclick="openRoomModal()">Add Room</button>
-                    <button onclick="exportToExcel('rooms', 'Rooms')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('rooms', 'Rooms')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('rooms')">Sort ↓</button>
                     <button onclick="openTrashModal('rooms')">Trash</button>
+                    <button onclick="toggleSort('rooms')">Sort ↓</button>
                 </div>
                 <table id="roomsTable">
                     <thead>
@@ -216,14 +220,14 @@
             </section>
 
             <!-- Sections Section -->
-            <section id="sections" class="section">
+            <section id="sections" class="section" data-module="sections">
                 <div class="controls">
-                    <input type="text" id="searchSection" placeholder="Search..." onkeyup="loadSections()">
+                    <input type="text" id="searchSection" placeholder="Search sections..." onkeyup="loadSections()" aria-label="Search sections">
                     <button onclick="openSectionModal()">Add Section</button>
-                    <button onclick="exportToExcel('sections', 'Sections')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('sections', 'Sections')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('sections')">Sort ↓</button>
                     <button onclick="openTrashModal('sections')">Trash</button>
+                    <button onclick="toggleSort('sections')">Sort ↓</button>
                 </div>
                 <table id="sectionsTable">
                     <thead>
@@ -245,14 +249,14 @@
             </section>
 
             <!-- Enrollments Section -->
-            <section id="enrollments" class="section">
+            <section id="enrollments" class="section" data-module="enrollments">
                 <div class="controls">
-                    <input type="text" id="searchEnroll" placeholder="Search..." onkeyup="loadEnrollments()">
+                    <input type="text" id="searchEnroll" placeholder="Search enrollments..." onkeyup="loadEnrollments()" aria-label="Search enrollments">
                     <button onclick="openEnrollModal()">Add Enrollment</button>
-                    <button onclick="exportToExcel('enrollments', 'Enrollments')">Export Excel</button>
+                    <button class="excel-export" onclick="exportToExcel('enrollments', 'Enrollments')">Export Excel</button>
                     <button onclick="window.print()">Print</button>
-                    <button onclick="toggleSort('enrollments')">Sort ↓</button>
                     <button onclick="openTrashModal('enrollments')">Trash</button>
+                    <button onclick="toggleSort('enrollments')">Sort ↓</button>
                 </div>
                 <table id="enrollmentsTable">
                     <thead>
@@ -275,16 +279,20 @@
         </main>
     </div>
 
-    <!-- Modals -->
-    <div id="deptModal" class="modal">
+    <!-- ========================================== -->
+    <!-- MODAL DIALOGS -->
+    <!-- ========================================== -->
+
+    <!-- Department Modal -->
+    <div id="deptModal" class="modal" role="dialog" aria-labelledby="deptModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeDeptModal()">&times;</span>
+            <span class="close" onclick="closeDeptModal()" aria-label="Close">&times;</span>
             <h2 id="deptModalTitle">Add Department</h2>
             <form id="deptForm" onsubmit="saveDepartment(event)">
                 <input type="hidden" id="deptId">
-                <label>Code:</label>
+                <label for="deptCode">Code:</label>
                 <input type="text" id="deptCode" required>
-                <label>Name:</label>
+                <label for="deptName">Name:</label>
                 <input type="text" id="deptName" required>
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeDeptModal()">Cancel</button>
@@ -292,17 +300,18 @@
         </div>
     </div>
 
-    <div id="progModal" class="modal">
+    <!-- Program Modal -->
+    <div id="progModal" class="modal" role="dialog" aria-labelledby="progModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeProgModal()">&times;</span>
+            <span class="close" onclick="closeProgModal()" aria-label="Close">&times;</span>
             <h2 id="progModalTitle">Add Program</h2>
             <form id="progForm" onsubmit="saveProgram(event)">
                 <input type="hidden" id="progId">
-                <label>Code:</label>
+                <label for="progCode">Code:</label>
                 <input type="text" id="progCode" required>
-                <label>Name:</label>
+                <label for="progName">Name:</label>
                 <input type="text" id="progName" required>
-                <label>Department:</label>
+                <label for="progDept">Department:</label>
                 <select id="progDept" required></select>
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeProgModal()">Cancel</button>
@@ -310,19 +319,20 @@
         </div>
     </div>
 
-    <div id="instModal" class="modal">
+    <!-- Instructor Modal -->
+    <div id="instModal" class="modal" role="dialog" aria-labelledby="instModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeInstModal()">&times;</span>
+            <span class="close" onclick="closeInstModal()" aria-label="Close">&times;</span>
             <h2 id="instModalTitle">Add Instructor</h2>
             <form id="instForm" onsubmit="saveInstructor(event)">
                 <input type="hidden" id="instId">
-                <label>First Name:</label>
+                <label for="instFirst">First Name:</label>
                 <input type="text" id="instFirst" required>
-                <label>Last Name:</label>
+                <label for="instLast">Last Name:</label>
                 <input type="text" id="instLast" required>
-                <label>Email:</label>
+                <label for="instEmail">Email:</label>
                 <input type="email" id="instEmail" required>
-                <label>Department:</label>
+                <label for="instDept">Department:</label>
                 <select id="instDept" required></select>
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeInstModal()">Cancel</button>
@@ -330,29 +340,30 @@
         </div>
     </div>
 
-    <div id="studModal" class="modal">
+    <!-- Student Modal -->
+    <div id="studModal" class="modal" role="dialog" aria-labelledby="studModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeStudModal()">&times;</span>
+            <span class="close" onclick="closeStudModal()" aria-label="Close">&times;</span>
             <h2 id="studModalTitle">Add Student</h2>
             <form id="studForm" onsubmit="saveStudent(event)">
                 <input type="hidden" id="studId">
-                <label>Student No:</label>
+                <label for="studNo">Student No:</label>
                 <input type="text" id="studNo" required>
-                <label>First Name:</label>
+                <label for="studFirst">First Name:</label>
                 <input type="text" id="studFirst" required>
-                <label>Last Name:</label>
+                <label for="studLast">Last Name:</label>
                 <input type="text" id="studLast" required>
-                <label>Email:</label>
+                <label for="studEmail">Email:</label>
                 <input type="email" id="studEmail" required>
-                <label>Gender:</label>
+                <label for="studGender">Gender:</label>
                 <select id="studGender" required>
                     <option value="">Select</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                 </select>
-                <label>Birthdate:</label>
+                <label for="studBirth">Birthdate:</label>
                 <input type="date" id="studBirth" required>
-                <label>Year Level:</label>
+                <label for="studYear">Year Level:</label>
                 <select id="studYear" required>
                     <option value="">Select</option>
                     <option value="1">1</option>
@@ -360,7 +371,7 @@
                     <option value="3">3</option>
                     <option value="4">4</option>
                 </select>
-                <label>Program:</label>
+                <label for="studProg">Program:</label>
                 <select id="studProg" required></select>
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeStudModal()">Cancel</button>
@@ -368,23 +379,24 @@
         </div>
     </div>
 
-    <div id="courseModal" class="modal">
+    <!-- Course Modal -->
+    <div id="courseModal" class="modal" role="dialog" aria-labelledby="courseModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeCourseModal()">&times;</span>
+            <span class="close" onclick="closeCourseModal()" aria-label="Close">&times;</span>
             <h2 id="courseModalTitle">Add Course</h2>
             <form id="courseForm" onsubmit="saveCourse(event)">
                 <input type="hidden" id="courseId">
-                <label>Code:</label>
+                <label for="courseCode">Code:</label>
                 <input type="text" id="courseCode" required>
-                <label>Title:</label>
+                <label for="courseTitle">Title:</label>
                 <input type="text" id="courseTitle" required>
-                <label>Units:</label>
+                <label for="courseUnits">Units:</label>
                 <input type="number" id="courseUnits" required>
-                <label>Lecture Hours:</label>
+                <label for="courseLecHrs">Lecture Hours:</label>
                 <input type="number" step="0.1" id="courseLecHrs" required>
-                <label>Lab Hours:</label>
+                <label for="courseLabHrs">Lab Hours:</label>
                 <input type="number" step="0.1" id="courseLabHrs" required>
-                <label>Department:</label>
+                <label for="courseDept">Department:</label>
                 <select id="courseDept" required></select>
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeCourseModal()">Cancel</button>
@@ -392,17 +404,18 @@
         </div>
     </div>
 
-    <div id="termModal" class="modal">
+    <!-- Term Modal -->
+    <div id="termModal" class="modal" role="dialog" aria-labelledby="termModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeTermModal()">&times;</span>
+            <span class="close" onclick="closeTermModal()" aria-label="Close">&times;</span>
             <h2 id="termModalTitle">Add Term</h2>
             <form id="termForm" onsubmit="saveTerm(event)">
                 <input type="hidden" id="termId">
-                <label>Code:</label>
+                <label for="termCode">Code:</label>
                 <input type="text" id="termCode" required>
-                <label>Start Date:</label>
+                <label for="termStart">Start Date:</label>
                 <input type="date" id="termStart" required>
-                <label>End Date:</label>
+                <label for="termEnd">End Date:</label>
                 <input type="date" id="termEnd" required>
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeTermModal()">Cancel</button>
@@ -410,17 +423,18 @@
         </div>
     </div>
 
-    <div id="roomModal" class="modal">
+    <!-- Room Modal -->
+    <div id="roomModal" class="modal" role="dialog" aria-labelledby="roomModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeRoomModal()">&times;</span>
+            <span class="close" onclick="closeRoomModal()" aria-label="Close">&times;</span>
             <h2 id="roomModalTitle">Add Room</h2>
             <form id="roomForm" onsubmit="saveRoom(event)">
                 <input type="hidden" id="roomId">
-                <label>Building:</label>
+                <label for="roomBuilding">Building:</label>
                 <input type="text" id="roomBuilding" required>
-                <label>Room Code:</label>
+                <label for="roomCode">Room Code:</label>
                 <input type="text" id="roomCode" required>
-                <label>Capacity:</label>
+                <label for="roomCapacity">Capacity:</label>
                 <input type="number" id="roomCapacity" required>
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeRoomModal()">Cancel</button>
@@ -428,29 +442,30 @@
         </div>
     </div>
 
-    <div id="sectionModal" class="modal">
+    <!-- Section Modal -->
+    <div id="sectionModal" class="modal" role="dialog" aria-labelledby="sectionModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeSectionModal()">&times;</span>
+            <span class="close" onclick="closeSectionModal()" aria-label="Close">&times;</span>
             <h2 id="sectionModalTitle">Add Section</h2>
             <form id="sectionForm" onsubmit="saveSection(event)">
                 <input type="hidden" id="sectionId">
-                <label>Section Code:</label>
+                <label for="sectionCode">Section Code:</label>
                 <input type="text" id="sectionCode" required>
-                <label>Course:</label>
+                <label for="sectionCourse">Course:</label>
                 <select id="sectionCourse" required></select>
-                <label>Term:</label>
+                <label for="sectionTerm">Term:</label>
                 <select id="sectionTerm" required></select>
-                <label>Instructor:</label>
+                <label for="sectionInst">Instructor:</label>
                 <select id="sectionInst" required></select>
-                <label>Day Pattern:</label>
+                <label for="sectionDays">Day Pattern:</label>
                 <input type="text" id="sectionDays" placeholder="MWF, TTh" required>
-                <label>Start Time:</label>
+                <label for="sectionStart">Start Time:</label>
                 <input type="time" id="sectionStart" required>
-                <label>End Time:</label>
+                <label for="sectionEnd">End Time:</label>
                 <input type="time" id="sectionEnd" required>
-                <label>Room:</label>
+                <label for="sectionRoom">Room:</label>
                 <select id="sectionRoom" required></select>
-                <label>Max Capacity:</label>
+                <label for="sectionCap">Max Capacity:</label>
                 <input type="number" id="sectionCap" required>
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeSectionModal()">Cancel</button>
@@ -458,26 +473,27 @@
         </div>
     </div>
 
-    <div id="enrollModal" class="modal">
+    <!-- Enrollment Modal -->
+    <div id="enrollModal" class="modal" role="dialog" aria-labelledby="enrollModalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeEnrollModal()">&times;</span>
+            <span class="close" onclick="closeEnrollModal()" aria-label="Close">&times;</span>
             <h2 id="enrollModalTitle">Add Enrollment</h2>
             <form id="enrollForm" onsubmit="saveEnrollment(event)">
                 <input type="hidden" id="enrollId">
-                <label>Student:</label>
+                <label for="enrollStud">Student:</label>
                 <select id="enrollStud" required></select>
-                <label>Section:</label>
+                <label for="enrollSection">Section:</label>
                 <select id="enrollSection" required></select>
-                <label>Date Enrolled:</label>
+                <label for="enrollDate">Date Enrolled:</label>
                 <input type="date" id="enrollDate" required>
-                <label>Status:</label>
+                <label for="enrollStatus">Status:</label>
                 <select id="enrollStatus" required>
                     <option value="Enrolled">Enrolled</option>
                     <option value="Dropped">Dropped</option>
                     <option value="Completed">Completed</option>
                     <option value="Failed">Failed</option>
                 </select>
-                <label>Grade (optional):</label>
+                <label for="enrollGrade">Grade (optional):</label>
                 <input type="text" id="enrollGrade">
                 <button type="submit">Save</button>
                 <button type="button" onclick="closeEnrollModal()">Cancel</button>
@@ -486,9 +502,9 @@
     </div>
 
     <!-- Trash Modal -->
-    <div id="trashModal" class="modal">
+    <div id="trashModal" class="modal" role="dialog" aria-labelledby="trashModalTitle" aria-modal="true">
         <div class="modal-content" style="max-width: 900px;">
-            <span class="close" onclick="closeTrashModal()">&times;</span>
+            <span class="close" onclick="closeTrashModal()" aria-label="Close">&times;</span>
             <h2 id="trashModalTitle">Trash</h2>
             <div id="trashContent">
                 <table id="trashTable">
