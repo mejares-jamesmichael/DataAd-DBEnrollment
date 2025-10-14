@@ -377,3 +377,29 @@ tbody td {
     text-align: center;
     color: #999;
 }
+
+@media print {
+    table {
+        page-break-inside: auto;   /* allow breaking inside */
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 5px !important;
+    }
+
+    tr {
+        page-break-inside: avoid;  /* don’t split a row */
+        page-break-after: auto;
+    }
+
+    thead {
+        display: table-header-group; /* repeat header on each page */
+    }
+
+    tfoot {
+        display: table-footer-group; /* repeat footer if you add one */
+    }
+
+    tbody tr td, thead th {
+        padding: 6px; /* tighten spacing for print */
+    }
+}
