@@ -327,13 +327,44 @@ form button:hover {
         border: none;
     }
     
+    /* Hide screen header, show print header */
     header, nav, .controls, .no-print {
         display: none !important;
+    }
+    
+    /* Print Header Styles - ONLY visible when printing */
+    .print-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 10px;
+        border-bottom: 3px solid #333;
+        margin-bottom: 5px;
+        gap: 10px;
+    }
+    
+    .print-logo {
+        max-width: 1000px;
+        max-height: 100px;
+        object-fit: contain;
     }
     
     table {
         page-break-inside: avoid;
     }
+    
+    /* Add page footer */
+    @page {
+        margin: 1cm;
+        @bottom-right {
+            content: "Page " counter(page) " of " counter(pages);
+        }
+    }
+}
+
+/* Hide print header on screen */
+.print-header {
+    display: none;
 }
 
 /* Loading State */
