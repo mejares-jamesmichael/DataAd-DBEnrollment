@@ -503,6 +503,7 @@ function loadCourses() {
                         <td>${c.units}</td>
                         <td>${c.lecture_hours}</td>
                         <td>${c.lab_hours}</td>
+                        <td>${c.prerequisites || '-'}</td>
                         <td>${c.dept_name}</td>
                         <td class="no-print">
                             <button onclick="editCourse(${c.course_id})">Edit</button>
@@ -511,7 +512,7 @@ function loadCourses() {
                     </tr>
                 `).join('');
             } else {
-                tbody.innerHTML = '<tr><td colspan="8">No records found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9">No records found</td></tr>';
             }
         })
         .catch(err => showAlert('Error loading courses', 'error'));
@@ -524,6 +525,18 @@ function openCourseModal() {
             const select = document.getElementById('courseDept');
             select.innerHTML = '<option value="">Select Department</option>' +
                 data.data.map(d => `<option value="${d.dept_id}">${d.dept_name}</option>`).join('');
+        });
+
+    fetch('courses.php?action=read')
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById('coursePrerequisites');
+            container.innerHTML = data.data.map(c => `
+                <label>
+                    <input type="checkbox" name="prerequisites" value="${c.course_id}">
+                    ${c.course_code} - ${c.course_title}
+                </label>
+            `).join('');
         });
     
     document.getElementById('courseModalTitle').textContent = 'Add Course';
@@ -549,6 +562,11 @@ function saveCourse(e) {
     formData.append('lecture_hours', document.getElementById('courseLecHrs').value);
     formData.append('lab_hours', document.getElementById('courseLabHrs').value);
     formData.append('dept_id', document.getElementById('courseDept').value);
+
+    const prerequisites = document.querySelectorAll('#coursePrerequisites input:checked');
+    prerequisites.forEach(prereq => {
+        formData.append('prerequisites[]', prereq.value);
+    });
 
     fetch('courses.php', { method: 'POST', body: formData })
         .then(res => res.json())
@@ -576,6 +594,23 @@ function editCourse(id) {
                     document.getElementById('courseLecHrs').value = data.data.lecture_hours;
                     document.getElementById('courseLabHrs').value = data.data.lab_hours;
                     document.getElementById('courseDept').value = data.data.dept_id;
+
+                    // Exclude self from prerequisite options
+                    const selfCheckbox = document.querySelector(`#coursePrerequisites input[value="${id}"]`);
+                    if (selfCheckbox) {
+                        selfCheckbox.parentElement.style.display = 'none';
+                    }
+
+                    fetch(`courses.php?action=getPrerequisites&course_id=${id}`)
+                        .then(res => res.json())
+                        .then(prereqData => {
+                            if (prereqData.success) {
+                                prereqData.data.forEach(prereqId => {
+                                    const checkbox = document.querySelector(`#coursePrerequisites input[value="${prereqId}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                        });
                 }, 100);
             }
         });
