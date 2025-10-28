@@ -20,6 +20,9 @@ switch ($action) {
     case 'getOne':
         getCourse();
         break;
+    case 'getPrerequisites':
+        getPrerequisitesForCourse();
+        break;
     case 'restore':
         restoreCourse();
         break;
@@ -50,7 +53,16 @@ function createCourse() {
     $stmt->bind_param("ssiddi", $course_code, $course_title, $units, $lecture_hours, $lab_hours, $dept_id);
     
     if ($stmt->execute()) {
-        sendResponse(true, 'Course created successfully', ['id' => $conn->insert_id]);
+        $course_id = $conn->insert_id;
+        if (isset($_POST['prerequisites']) && is_array($_POST['prerequisites'])) {
+            $prereq_sql = "INSERT INTO tblCoursePrerequisites (course_id, prereq_course_id) VALUES (?, ?)";
+            $prereq_stmt = $conn->prepare($prereq_sql);
+            foreach ($_POST['prerequisites'] as $prereq_id) {
+                $prereq_stmt->bind_param("ii", $course_id, $prereq_id);
+                $prereq_stmt->execute();
+            }
+        }
+        sendResponse(true, 'Course created successfully', ['id' => $course_id]);
     } else {
         sendResponse(false, 'Error: ' . $stmt->error);
     }
@@ -62,22 +74,25 @@ function readCourses() {
     $search = sanitize($_GET['search'] ?? '');
     $order = strtoupper(sanitize($_GET['order'] ?? 'DESC'));
     $order = ($order === 'ASC') ? 'ASC' : 'DESC';
-    
-    if (!empty($search)) {
-        $sql = "SELECT c.*, d.dept_name, d.dept_code
+
+    $baseSql = "SELECT c.*, d.dept_name, d.dept_code,
+                       GROUP_CONCAT(pc.course_code ORDER BY pc.course_code SEPARATOR ', ') as prerequisites
                 FROM tblCourses c
                 LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id AND d.deleted_at IS NULL
-                WHERE (c.course_code LIKE ? OR c.course_title LIKE ? OR d.dept_name LIKE ?)
+                LEFT JOIN tblCoursePrerequisites cp ON c.course_id = cp.course_id
+                LEFT JOIN tblCourses pc ON cp.prereq_course_id = pc.course_id";
+
+    if (!empty($search)) {
+        $sql = "$baseSql WHERE (c.course_code LIKE ? OR c.course_title LIKE ? OR d.dept_name LIKE ?)
                 AND c.deleted_at IS NULL
+                GROUP BY c.course_id
                 ORDER BY c.course_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT c.*, d.dept_name, d.dept_code
-                FROM tblCourses c
-                LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id AND d.deleted_at IS NULL
-                WHERE c.deleted_at IS NULL
+        $sql = "$baseSql WHERE c.deleted_at IS NULL
+                GROUP BY c.course_id
                 ORDER BY c.course_id $order";
         $stmt = $conn->prepare($sql);
     }
@@ -114,10 +129,26 @@ function updateCourse() {
     $stmt->bind_param("ssiddii", $course_code, $course_title, $units, $lecture_hours, $lab_hours, $dept_id, $course_id);
     
     if ($stmt->execute()) {
+        // First, delete existing prerequisites
+        $delete_sql = "DELETE FROM tblCoursePrerequisites WHERE course_id = ?";
+        $delete_stmt = $conn->prepare($delete_sql);
+        $delete_stmt->bind_param("i", $course_id);
+        $delete_stmt->execute();
+
+        // Then, insert new prerequisites
+        if (isset($_POST['prerequisites']) && is_array($_POST['prerequisites'])) {
+            $prereq_sql = "INSERT INTO tblCoursePrerequisites (course_id, prereq_course_id) VALUES (?, ?)";
+            $prereq_stmt = $conn->prepare($prereq_sql);
+            foreach ($_POST['prerequisites'] as $prereq_id) {
+                $prereq_stmt->bind_param("ii", $course_id, $prereq_id);
+                $prereq_stmt->execute();
+            }
+        }
         sendResponse(true, 'Course updated successfully');
     } else {
         sendResponse(false, 'Error: ' . $stmt->error);
     }
+.
 }
 
 function deleteCourse() {
@@ -153,12 +184,31 @@ function getCourse() {
     }
 }
 
+function getPrerequisitesForCourse() {
+    global $conn;
+
+    $course_id = intval($_GET['course_id']);
+
+    $sql = "SELECT prereq_course_id FROM tblCoursePrerequisites WHERE course_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $course_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $prerequisites = [];
+
+    while ($row = $result->fetch_assoc()) {
+        $prerequisites[] = $row['prereq_course_id'];
+    }
+
+    sendResponse(true, 'Prerequisites retrieved successfully', $prerequisites);
+}
+
 function restoreCourse() {
     global $conn;
     
     $course_id = intval($_POST['course_id']);
     
-    if (restoreDeleted('tblCourses', 'course_id', $course_id)) {
+    if (restoreDeleted('tblCourses', 'course_id',_id)) {
         sendResponse(true, 'Course restored successfully');
     } else {
         sendResponse(false, 'Error restoring course');
