@@ -530,13 +530,10 @@ function openCourseModal() {
     fetch('courses.php?action=read')
         .then(res => res.json())
         .then(data => {
-            const container = document.getElementById('coursePrerequisites');
-            container.innerHTML = data.data.map(c => `
-                <label>
-                    <input type="checkbox" name="prerequisites" value="${c.course_id}">
-                    ${c.course_code} - ${c.course_title}
-                </label>
-            `).join('');
+            const select = document.getElementById('coursePrerequisites');
+            select.innerHTML = data.data.map(c => 
+                `<option value="${c.course_id}">${c.course_code} - ${c.course_title}</option>`
+            ).join('');
         });
     
     document.getElementById('courseModalTitle').textContent = 'Add Course';
@@ -563,8 +560,8 @@ function saveCourse(e) {
     formData.append('lab_hours', document.getElementById('courseLabHrs').value);
     formData.append('dept_id', document.getElementById('courseDept').value);
 
-    const prerequisites = document.querySelectorAll('#coursePrerequisites input:checked');
-    prerequisites.forEach(prereq => {
+    const prerequisites = document.getElementById('coursePrerequisites').selectedOptions;
+    Array.from(prerequisites).forEach(prereq => {
         formData.append('prerequisites[]', prereq.value);
     });
 
@@ -596,9 +593,9 @@ function editCourse(id) {
                     document.getElementById('courseDept').value = data.data.dept_id;
 
                     // Exclude self from prerequisite options
-                    const selfCheckbox = document.querySelector(`#coursePrerequisites input[value="${id}"]`);
-                    if (selfCheckbox) {
-                        selfCheckbox.parentElement.style.display = 'none';
+                    const selfOption = document.querySelector(`#coursePrerequisites option[value="${id}"]`);
+                    if (selfOption) {
+                        selfOption.style.display = 'none';
                     }
 
                     fetch(`courses.php?action=getPrerequisites&course_id=${id}`)
@@ -606,8 +603,8 @@ function editCourse(id) {
                         .then(prereqData => {
                             if (prereqData.success) {
                                 prereqData.data.forEach(prereqId => {
-                                    const checkbox = document.querySelector(`#coursePrerequisites input[value="${prereqId}"]`);
-                                    if (checkbox) checkbox.checked = true;
+                                    const option = document.querySelector(`#coursePrerequisites option[value="${prereqId}"]`);
+                                    if (option) option.selected = true;
                                 });
                             }
                         });
