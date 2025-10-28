@@ -148,7 +148,6 @@ function updateCourse() {
     } else {
         sendResponse(false, 'Error: ' . $stmt->error);
     }
-.
 }
 
 function deleteCourse() {
@@ -208,7 +207,7 @@ function restoreCourse() {
     
     $course_id = intval($_POST['course_id']);
     
-    if (restoreDeleted('tblCourses', 'course_id',_id)) {
+    if (restoreDeleted('tblCourses', 'course_id', $course_id)) {
         sendResponse(true, 'Course restored successfully');
     } else {
         sendResponse(false, 'Error restoring course');
