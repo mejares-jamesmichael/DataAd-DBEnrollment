@@ -47,15 +47,15 @@ function createCourse() {
         sendResponse(false, 'Required fields are missing');
     }
     
-    $sql = "INSERT INTO tblCourses (course_code, course_title, units, lecture_hours, lab_hours, dept_id) 
-            VALUES (?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO tbl_course (course_code, course_title, units, lecture_hours, lab_hours, dept_id, is_deleted)
+            VALUES (?, ?, ?, ?, ?, ?, 0)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssiddi", $course_code, $course_title, $units, $lecture_hours, $lab_hours, $dept_id);
     
     if ($stmt->execute()) {
         $course_id = $conn->insert_id;
         if (isset($_POST['prerequisites']) && is_array($_POST['prerequisites'])) {
-            $prereq_sql = "INSERT INTO tblCoursePrerequisites (course_id, prereq_course_id) VALUES (?, ?)";
+            $prereq_sql = "INSERT INTO tbl_course_prerequisite (course_id, prereq_course_id, is_deleted) VALUES (?, ?, 0)";
             $prereq_stmt = $conn->prepare($prereq_sql);
             foreach ($_POST['prerequisites'] as $prereq_id) {
                 $prereq_stmt->bind_param("ii", $course_id, $prereq_id);
@@ -77,21 +77,21 @@ function readCourses() {
 
     $baseSql = "SELECT c.*, d.dept_name, d.dept_code,
                        GROUP_CONCAT(pc.course_code ORDER BY pc.course_code SEPARATOR ', ') as prerequisites
-                FROM tblCourses c
-                LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id AND d.deleted_at IS NULL
-                LEFT JOIN tblCoursePrerequisites cp ON c.course_id = cp.course_id
-                LEFT JOIN tblCourses pc ON cp.prereq_course_id = pc.course_id";
+                FROM tbl_course c
+                LEFT JOIN tbl_department d ON c.dept_id = d.dept_id AND d.is_deleted = 0
+                LEFT JOIN tbl_course_prerequisite cp ON c.course_id = cp.course_id AND cp.is_deleted = 0
+                LEFT JOIN tbl_course pc ON cp.prereq_course_id = pc.course_id AND pc.is_deleted = 0";
 
     if (!empty($search)) {
         $sql = "$baseSql WHERE (c.course_code LIKE ? OR c.course_title LIKE ? OR d.dept_name LIKE ?)
-                AND c.deleted_at IS NULL
+                AND c.is_deleted = 0
                 GROUP BY c.course_id
                 ORDER BY c.course_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
     } else {
-        $sql = "$baseSql WHERE c.deleted_at IS NULL
+        $sql = "$baseSql WHERE c.is_deleted = 0
                 GROUP BY c.course_id
                 ORDER BY c.course_id $order";
         $stmt = $conn->prepare($sql);
@@ -123,21 +123,21 @@ function updateCourse() {
         sendResponse(false, 'Required fields are missing');
     }
     
-    $sql = "UPDATE tblCourses SET course_code = ?, course_title = ?, units = ?, lecture_hours = ?, lab_hours = ?, dept_id = ? 
-            WHERE course_id = ?";
+    $sql = "UPDATE tbl_course SET course_code = ?, course_title = ?, units = ?, lecture_hours = ?, lab_hours = ?, dept_id = ?
+            WHERE course_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssiddii", $course_code, $course_title, $units, $lecture_hours, $lab_hours, $dept_id, $course_id);
     
     if ($stmt->execute()) {
-        // First, delete existing prerequisites
-        $delete_sql = "DELETE FROM tblCoursePrerequisites WHERE course_id = ?";
+        // First, soft delete existing prerequisites
+        $delete_sql = "UPDATE tbl_course_prerequisite SET is_deleted = 1 WHERE course_id = ? AND is_deleted = 0";
         $delete_stmt = $conn->prepare($delete_sql);
         $delete_stmt->bind_param("i", $course_id);
         $delete_stmt->execute();
 
         // Then, insert new prerequisites
         if (isset($_POST['prerequisites']) && is_array($_POST['prerequisites'])) {
-            $prereq_sql = "INSERT INTO tblCoursePrerequisites (course_id, prereq_course_id) VALUES (?, ?)";
+            $prereq_sql = "INSERT INTO tbl_course_prerequisite (course_id, prereq_course_id, is_deleted) VALUES (?, ?, 0)";
             $prereq_stmt = $conn->prepare($prereq_sql);
             foreach ($_POST['prerequisites'] as $prereq_id) {
                 $prereq_stmt->bind_param("ii", $course_id, $prereq_id);
@@ -155,7 +155,7 @@ function deleteCourse() {
     
     $course_id = intval($_POST['course_id']);
     
-    if (softDelete('tblCourses', 'course_id', $course_id)) {
+    if (softDelete('tbl_course', 'course_id', $course_id)) {
         sendResponse(true, 'Course deleted successfully');
     } else {
         sendResponse(false, 'Error deleting course');
@@ -168,9 +168,9 @@ function getCourse() {
     $course_id = intval($_GET['course_id']);
     
     $sql = "SELECT c.*, d.dept_name, d.dept_code
-            FROM tblCourses c
-            LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id
-            WHERE c.course_id = ? AND c.deleted_at IS NULL";
+            FROM tbl_course c
+            LEFT JOIN tbl_department d ON c.dept_id = d.dept_id
+            WHERE c.course_id = ? AND c.is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $course_id);
     $stmt->execute();
@@ -188,7 +188,7 @@ function getPrerequisitesForCourse() {
 
     $course_id = intval($_GET['course_id']);
 
-    $sql = "SELECT prereq_course_id FROM tblCoursePrerequisites WHERE course_id = ?";
+    $sql = "SELECT prereq_course_id FROM tbl_course_prerequisite WHERE course_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $course_id);
     $stmt->execute();
@@ -207,7 +207,7 @@ function restoreCourse() {
     
     $course_id = intval($_POST['course_id']);
     
-    if (restoreDeleted('tblCourses', 'course_id', $course_id)) {
+    if (restoreDeleted('tbl_course', 'course_id', $course_id)) {
         sendResponse(true, 'Course restored successfully');
     } else {
         sendResponse(false, 'Error restoring course');
@@ -218,10 +218,10 @@ function readDeletedCourses() {
     global $conn;
     
     $sql = "SELECT c.*, d.dept_name, d.dept_code
-            FROM tblCourses c
-            LEFT JOIN tblDepartments d ON c.dept_id = d.dept_id
-            WHERE c.deleted_at IS NOT NULL 
-            ORDER BY c.deleted_at DESC";
+            FROM tbl_course c
+            LEFT JOIN tbl_department d ON c.dept_id = d.dept_id
+            WHERE c.is_deleted = 1
+            ORDER BY c.course_id DESC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

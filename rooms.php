@@ -41,7 +41,7 @@ function createRoom() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "INSERT INTO tblRooms (building, room_code, capacity) VALUES (?, ?, ?)";
+    $sql = "INSERT INTO tbl_room (building, room_code, capacity, is_deleted) VALUES (?, ?, ?, 0)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssi", $building, $room_code, $capacity);
     
@@ -60,15 +60,15 @@ function readRooms() {
     $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
-        $sql = "SELECT * FROM tblRooms 
+        $sql = "SELECT * FROM tbl_room
                 WHERE (building LIKE ? OR room_code LIKE ?)
-                AND deleted_at IS NULL
+                AND is_deleted = 0
                 ORDER BY room_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ss", $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT * FROM tblRooms WHERE deleted_at IS NULL ORDER BY room_id $order";
+        $sql = "SELECT * FROM tbl_room WHERE is_deleted = 0 ORDER BY room_id $order";
         $stmt = $conn->prepare($sql);
     }
     
@@ -95,7 +95,7 @@ function updateRoom() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "UPDATE tblRooms SET building = ?, room_code = ?, capacity = ? WHERE room_id = ?";
+    $sql = "UPDATE tbl_room SET building = ?, room_code = ?, capacity = ? WHERE room_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssii", $building, $room_code, $capacity, $room_id);
     
@@ -111,7 +111,7 @@ function deleteRoom() {
     
     $room_id = intval($_POST['room_id']);
     
-    if (softDelete('tblRooms', 'room_id', $room_id)) {
+    if (softDelete('tbl_room', 'room_id', $room_id)) {
         sendResponse(true, 'Room deleted successfully');
     } else {
         sendResponse(false, 'Error deleting room');
@@ -123,7 +123,7 @@ function getRoom() {
     
     $room_id = intval($_GET['room_id']);
     
-    $sql = "SELECT * FROM tblRooms WHERE room_id = ? AND deleted_at IS NULL";
+    $sql = "SELECT * FROM tbl_room WHERE room_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $room_id);
     $stmt->execute();
@@ -141,7 +141,7 @@ function restoreRoom() {
     
     $room_id = intval($_POST['room_id']);
     
-    if (restoreDeleted('tblRooms', 'room_id', $room_id)) {
+    if (restoreDeleted('tbl_room', 'room_id', $room_id)) {
         sendResponse(true, 'Room restored successfully');
     } else {
         sendResponse(false, 'Error restoring room');
@@ -151,7 +151,7 @@ function restoreRoom() {
 function readDeletedRooms() {
     global $conn;
     
-    $sql = "SELECT * FROM tblRooms WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC";
+    $sql = "SELECT * FROM tbl_room WHERE is_deleted = 1 ORDER BY room_id DESC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

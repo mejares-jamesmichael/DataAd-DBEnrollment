@@ -47,8 +47,8 @@ function createSection() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "INSERT INTO tblSections (section_code, course_id, term_id, instructor_id, day_pattern, start_time, end_time, room_id, max_capacity) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO tbl_section (section_code, course_id, term_id, instructor_id, day_pattern, start_time, end_time, room_id, max_capacity, is_deleted)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("siiisssii", $section_code, $course_id, $term_id, $instructor_id, $day_pattern, $start_time, $end_time, $room_id, $max_capacity);
     
@@ -67,30 +67,30 @@ function readSections() {
     $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
-        $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code, 
-                       CONCAT(i.first_name, ' ', i.last_name) as instructor_name, 
+        $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code,
+                       CONCAT(i.first_name, ' ', i.last_name) as instructor_name,
                        r.room_code, r.building
-                FROM tblSections s
-                LEFT JOIN tblCourses c ON s.course_id = c.course_id AND c.deleted_at IS NULL
-                LEFT JOIN tblTerms t ON s.term_id = t.term_id AND t.deleted_at IS NULL
-                LEFT JOIN tblInstructors i ON s.instructor_id = i.instructor_id AND i.deleted_at IS NULL
-                LEFT JOIN tblRooms r ON s.room_id = r.room_id AND r.deleted_at IS NULL
+                FROM tbl_section s
+                LEFT JOIN tbl_course c ON s.course_id = c.course_id AND c.is_deleted = 0
+                LEFT JOIN tbl_term t ON s.term_id = t.term_id AND t.is_deleted = 0
+                LEFT JOIN tbl_instructor i ON s.instructor_id = i.instructor_id AND i.is_deleted = 0
+                LEFT JOIN tbl_room r ON s.room_id = r.room_id AND r.is_deleted = 0
                 WHERE (s.section_code LIKE ? OR c.course_code LIKE ? OR c.course_title LIKE ? OR t.term_code LIKE ?)
-                AND s.deleted_at IS NULL
+                AND s.is_deleted = 0
                 ORDER BY s.section_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code, 
-                       CONCAT(i.first_name, ' ', i.last_name) as instructor_name, 
+        $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code,
+                       CONCAT(i.first_name, ' ', i.last_name) as instructor_name,
                        r.room_code, r.building
-                FROM tblSections s
-                LEFT JOIN tblCourses c ON s.course_id = c.course_id AND c.deleted_at IS NULL
-                LEFT JOIN tblTerms t ON s.term_id = t.term_id AND t.deleted_at IS NULL
-                LEFT JOIN tblInstructors i ON s.instructor_id = i.instructor_id AND i.deleted_at IS NULL
-                LEFT JOIN tblRooms r ON s.room_id = r.room_id AND r.deleted_at IS NULL
-                WHERE s.deleted_at IS NULL
+                FROM tbl_section s
+                LEFT JOIN tbl_course c ON s.course_id = c.course_id AND c.is_deleted = 0
+                LEFT JOIN tbl_term t ON s.term_id = t.term_id AND t.is_deleted = 0
+                LEFT JOIN tbl_instructor i ON s.instructor_id = i.instructor_id AND i.is_deleted = 0
+                LEFT JOIN tbl_room r ON s.room_id = r.room_id AND r.is_deleted = 0
+                WHERE s.is_deleted = 0
                 ORDER BY s.section_id $order";
         $stmt = $conn->prepare($sql);
     }
@@ -124,8 +124,8 @@ function updateSection() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "UPDATE tblSections SET section_code = ?, course_id = ?, term_id = ?, instructor_id = ?, day_pattern = ?, start_time = ?, end_time = ?, room_id = ?, max_capacity = ? 
-            WHERE section_id = ?";
+    $sql = "UPDATE tbl_section SET section_code = ?, course_id = ?, term_id = ?, instructor_id = ?, day_pattern = ?, start_time = ?, end_time = ?, room_id = ?, max_capacity = ?
+            WHERE section_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("siiissssii", $section_code, $course_id, $term_id, $instructor_id, $day_pattern, $start_time, $end_time, $room_id, $max_capacity, $section_id);
     
@@ -141,7 +141,7 @@ function deleteSection() {
     
     $section_id = intval($_POST['section_id']);
     
-    if (softDelete('tblSections', 'section_id', $section_id)) {
+    if (softDelete('tbl_section', 'section_id', $section_id)) {
         sendResponse(true, 'Section deleted successfully');
     } else {
         sendResponse(false, 'Error deleting section');
@@ -153,15 +153,15 @@ function getSection() {
     
     $section_id = intval($_GET['section_id']);
     
-    $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code, 
-                   CONCAT(i.first_name, ' ', i.last_name) as instructor_name, 
+    $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code,
+                   CONCAT(i.first_name, ' ', i.last_name) as instructor_name,
                    r.room_code, r.building
-            FROM tblSections s
-            LEFT JOIN tblCourses c ON s.course_id = c.course_id
-            LEFT JOIN tblTerms t ON s.term_id = t.term_id
-            LEFT JOIN tblInstructors i ON s.instructor_id = i.instructor_id
-            LEFT JOIN tblRooms r ON s.room_id = r.room_id
-            WHERE s.section_id = ? AND s.deleted_at IS NULL";
+            FROM tbl_section s
+            LEFT JOIN tbl_course c ON s.course_id = c.course_id
+            LEFT JOIN tbl_term t ON s.term_id = t.term_id
+            LEFT JOIN tbl_instructor i ON s.instructor_id = i.instructor_id
+            LEFT JOIN tbl_room r ON s.room_id = r.room_id
+            WHERE s.section_id = ? AND s.is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $section_id);
     $stmt->execute();
@@ -179,7 +179,7 @@ function restoreSection() {
     
     $section_id = intval($_POST['section_id']);
     
-    if (restoreDeleted('tblSections', 'section_id', $section_id)) {
+    if (restoreDeleted('tbl_section', 'section_id', $section_id)) {
         sendResponse(true, 'Section restored successfully');
     } else {
         sendResponse(false, 'Error restoring section');
@@ -189,16 +189,16 @@ function restoreSection() {
 function readDeletedSections() {
     global $conn;
     
-    $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code, 
-                   CONCAT(i.first_name, ' ', i.last_name) as instructor_name, 
+    $sql = "SELECT s.*, c.course_code, c.course_title, t.term_code,
+                   CONCAT(i.first_name, ' ', i.last_name) as instructor_name,
                    r.room_code, r.building
-            FROM tblSections s
-            LEFT JOIN tblCourses c ON s.course_id = c.course_id
-            LEFT JOIN tblTerms t ON s.term_id = t.term_id
-            LEFT JOIN tblInstructors i ON s.instructor_id = i.instructor_id
-            LEFT JOIN tblRooms r ON s.room_id = r.room_id
-            WHERE s.deleted_at IS NOT NULL 
-            ORDER BY s.deleted_at DESC";
+            FROM tbl_section s
+            LEFT JOIN tbl_course c ON s.course_id = c.course_id
+            LEFT JOIN tbl_term t ON s.term_id = t.term_id
+            LEFT JOIN tbl_instructor i ON s.instructor_id = i.instructor_id
+            LEFT JOIN tbl_room r ON s.room_id = r.room_id
+            WHERE s.is_deleted = 1
+            ORDER BY s.section_id DESC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

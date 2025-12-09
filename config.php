@@ -41,7 +41,7 @@ function sendResponse($success, $message, $data = null) {
 // Soft Delete Helper Functions
 function softDelete($table, $idColumn, $id) {
     global $conn;
-    $sql = "UPDATE $table SET deleted_at = NOW() WHERE $idColumn = ? AND deleted_at IS NULL";
+    $sql = "UPDATE $table SET is_deleted = 1 WHERE $idColumn = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     return $stmt->execute();
@@ -49,7 +49,7 @@ function softDelete($table, $idColumn, $id) {
 
 function restoreDeleted($table, $idColumn, $id) {
     global $conn;
-    $sql = "UPDATE $table SET deleted_at = NULL WHERE $idColumn = ?";
+    $sql = "UPDATE $table SET is_deleted = 0 WHERE $idColumn = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
     return $stmt->execute();

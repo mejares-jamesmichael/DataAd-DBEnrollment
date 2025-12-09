@@ -41,7 +41,7 @@ function createProgram() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "INSERT INTO tblPrograms (program_code, program_name, dept_id) VALUES (?, ?, ?)";
+    $sql = "INSERT INTO tbl_program (program_code, program_name, dept_id, is_deleted) VALUES (?, ?, ?, 0)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssi", $program_code, $program_name, $dept_id);
     
@@ -60,20 +60,20 @@ function readPrograms() {
     $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
-        $sql = "SELECT p.*, d.dept_name 
-                FROM tblPrograms p
-                LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id AND d.deleted_at IS NULL
+        $sql = "SELECT p.*, d.dept_name
+                FROM tbl_program p
+                LEFT JOIN tbl_department d ON p.dept_id = d.dept_id AND d.is_deleted = 0
                 WHERE (p.program_code LIKE ? OR p.program_name LIKE ? OR d.dept_name LIKE ?)
-                AND p.deleted_at IS NULL
+                AND p.is_deleted = 0
                 ORDER BY p.program_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT p.*, d.dept_name 
-                FROM tblPrograms p
-                LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id AND d.deleted_at IS NULL
-                WHERE p.deleted_at IS NULL
+        $sql = "SELECT p.*, d.dept_name
+                FROM tbl_program p
+                LEFT JOIN tbl_department d ON p.dept_id = d.dept_id AND d.is_deleted = 0
+                WHERE p.is_deleted = 0
                 ORDER BY p.program_id $order";
         $stmt = $conn->prepare($sql);
     }
@@ -101,7 +101,7 @@ function updateProgram() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "UPDATE tblPrograms SET program_code = ?, program_name = ?, dept_id = ? WHERE program_id = ?";
+    $sql = "UPDATE tbl_program SET program_code = ?, program_name = ?, dept_id = ? WHERE program_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("ssii", $program_code, $program_name, $dept_id, $program_id);
     
@@ -117,7 +117,7 @@ function deleteProgram() {
     
     $program_id = intval($_POST['program_id']);
     
-    if (softDelete('tblPrograms', 'program_id', $program_id)) {
+    if (softDelete('tbl_program', 'program_id', $program_id)) {
         sendResponse(true, 'Program deleted successfully');
     } else {
         sendResponse(false, 'Error deleting program');
@@ -129,10 +129,10 @@ function getProgram() {
     
     $program_id = intval($_GET['program_id']);
     
-    $sql = "SELECT p.*, d.dept_name 
-            FROM tblPrograms p
-            LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id
-            WHERE p.program_id = ? AND p.deleted_at IS NULL";
+    $sql = "SELECT p.*, d.dept_name
+            FROM tbl_program p
+            LEFT JOIN tbl_department d ON p.dept_id = d.dept_id
+            WHERE p.program_id = ? AND p.is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $program_id);
     $stmt->execute();
@@ -150,7 +150,7 @@ function restoreProgram() {
     
     $program_id = intval($_POST['program_id']);
     
-    if (restoreDeleted('tblPrograms', 'program_id', $program_id)) {
+    if (restoreDeleted('tbl_program', 'program_id', $program_id)) {
         sendResponse(true, 'Program restored successfully');
     } else {
         sendResponse(false, 'Error restoring program');
@@ -160,11 +160,11 @@ function restoreProgram() {
 function readDeletedPrograms() {
     global $conn;
     
-    $sql = "SELECT p.*, d.dept_name 
-            FROM tblPrograms p
-            LEFT JOIN tblDepartments d ON p.dept_id = d.dept_id
-            WHERE p.deleted_at IS NOT NULL 
-            ORDER BY p.deleted_at DESC";
+    $sql = "SELECT p.*, d.dept_name
+            FROM tbl_program p
+            LEFT JOIN tbl_department d ON p.dept_id = d.dept_id
+            WHERE p.is_deleted = 1
+            ORDER BY p.program_id DESC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

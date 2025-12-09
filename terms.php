@@ -41,7 +41,7 @@ function createTerm() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "INSERT INTO tblTerms (term_code, start_date, end_date) VALUES (?, ?, ?)";
+    $sql = "INSERT INTO tbl_term (term_code, start_date, end_date, is_deleted) VALUES (?, ?, ?, 0)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("sss", $term_code, $start_date, $end_date);
     
@@ -60,14 +60,14 @@ function readTerms() {
     $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
-        $sql = "SELECT * FROM tblTerms 
-                WHERE term_code LIKE ? AND deleted_at IS NULL
+        $sql = "SELECT * FROM tbl_term
+                WHERE term_code LIKE ? AND is_deleted = 0
                 ORDER BY term_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("s", $searchTerm);
     } else {
-        $sql = "SELECT * FROM tblTerms WHERE deleted_at IS NULL ORDER BY term_id $order";
+        $sql = "SELECT * FROM tbl_term WHERE is_deleted = 0 ORDER BY term_id $order";
         $stmt = $conn->prepare($sql);
     }
     
@@ -94,7 +94,7 @@ function updateTerm() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "UPDATE tblTerms SET term_code = ?, start_date = ?, end_date = ? WHERE term_id = ?";
+    $sql = "UPDATE tbl_term SET term_code = ?, start_date = ?, end_date = ? WHERE term_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("sssi", $term_code, $start_date, $end_date, $term_id);
     
@@ -110,7 +110,7 @@ function deleteTerm() {
     
     $term_id = intval($_POST['term_id']);
     
-    if (softDelete('tblTerms', 'term_id', $term_id)) {
+    if (softDelete('tbl_term', 'term_id', $term_id)) {
         sendResponse(true, 'Term deleted successfully');
     } else {
         sendResponse(false, 'Error deleting term');
@@ -122,7 +122,7 @@ function getTerm() {
     
     $term_id = intval($_GET['term_id']);
     
-    $sql = "SELECT * FROM tblTerms WHERE term_id = ? AND deleted_at IS NULL";
+    $sql = "SELECT * FROM tbl_term WHERE term_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $term_id);
     $stmt->execute();
@@ -140,7 +140,7 @@ function restoreTerm() {
     
     $term_id = intval($_POST['term_id']);
     
-    if (restoreDeleted('tblTerms', 'term_id', $term_id)) {
+    if (restoreDeleted('tbl_term', 'term_id', $term_id)) {
         sendResponse(true, 'Term restored successfully');
     } else {
         sendResponse(false, 'Error restoring term');
@@ -150,7 +150,7 @@ function restoreTerm() {
 function readDeletedTerms() {
     global $conn;
     
-    $sql = "SELECT * FROM tblTerms WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC";
+    $sql = "SELECT * FROM tbl_term WHERE is_deleted = 1 ORDER BY term_id DESC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

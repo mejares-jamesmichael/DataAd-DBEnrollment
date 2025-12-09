@@ -43,8 +43,8 @@ function createEnrollment() {
         sendResponse(false, 'Required fields are missing');
     }
     
-    $sql = "INSERT INTO tblEnrollments (student_id, section_id, date_enrolled, status, letter_grade) 
-            VALUES (?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO tbl_enrollment (student_id, section_id, date_enrolled, status, letter_grade, is_deleted)
+            VALUES (?, ?, ?, ?, ?, 0)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("iisss", $student_id, $section_id, $date_enrolled, $status, $letter_grade);
     
@@ -63,36 +63,36 @@ function readEnrollments() {
     $order = ($order === 'ASC') ? 'ASC' : 'DESC';
     
     if (!empty($search)) {
-        $sql = "SELECT e.*, 
+        $sql = "SELECT e.*,
                        CONCAT(st.first_name, ' ', st.last_name) as student_name,
                        st.student_no,
                        c.course_code, c.course_title,
                        sec.section_code,
                        t.term_code
-                FROM tblEnrollments e
-                LEFT JOIN tblStudents st ON e.student_id = st.student_id AND st.deleted_at IS NULL
-                LEFT JOIN tblSections sec ON e.section_id = sec.section_id AND sec.deleted_at IS NULL
-                LEFT JOIN tblCourses c ON sec.course_id = c.course_id AND c.deleted_at IS NULL
-                LEFT JOIN tblTerms t ON sec.term_id = t.term_id AND t.deleted_at IS NULL
+                FROM tbl_enrollment e
+                LEFT JOIN tbl_student st ON e.student_id = st.student_id AND st.is_deleted = 0
+                LEFT JOIN tbl_section sec ON e.section_id = sec.section_id AND sec.is_deleted = 0
+                LEFT JOIN tbl_course c ON sec.course_id = c.course_id AND c.is_deleted = 0
+                LEFT JOIN tbl_term t ON sec.term_id = t.term_id AND t.is_deleted = 0
                 WHERE (st.student_no LIKE ? OR st.first_name LIKE ? OR st.last_name LIKE ? OR c.course_code LIKE ?)
-                AND e.deleted_at IS NULL
+                AND e.is_deleted = 0
                 ORDER BY e.enrollment_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm);
     } else {
-        $sql = "SELECT e.*, 
+        $sql = "SELECT e.*,
                        CONCAT(st.first_name, ' ', st.last_name) as student_name,
                        st.student_no,
                        c.course_code, c.course_title,
                        sec.section_code,
                        t.term_code
-                FROM tblEnrollments e
-                LEFT JOIN tblStudents st ON e.student_id = st.student_id AND st.deleted_at IS NULL
-                LEFT JOIN tblSections sec ON e.section_id = sec.section_id AND sec.deleted_at IS NULL
-                LEFT JOIN tblCourses c ON sec.course_id = c.course_id AND c.deleted_at IS NULL
-                LEFT JOIN tblTerms t ON sec.term_id = t.term_id AND t.deleted_at IS NULL
-                WHERE e.deleted_at IS NULL
+                FROM tbl_enrollment e
+                LEFT JOIN tbl_student st ON e.student_id = st.student_id AND st.is_deleted = 0
+                LEFT JOIN tbl_section sec ON e.section_id = sec.section_id AND sec.is_deleted = 0
+                LEFT JOIN tbl_course c ON sec.course_id = c.course_id AND c.is_deleted = 0
+                LEFT JOIN tbl_term t ON sec.term_id = t.term_id AND t.is_deleted = 0
+                WHERE e.is_deleted = 0
                 ORDER BY e.enrollment_id $order";
         $stmt = $conn->prepare($sql);
     }
@@ -122,8 +122,8 @@ function updateEnrollment() {
         sendResponse(false, 'Required fields are missing');
     }
     
-    $sql = "UPDATE tblEnrollments SET student_id = ?, section_id = ?, date_enrolled = ?, status = ?, letter_grade = ? 
-            WHERE enrollment_id = ?";
+    $sql = "UPDATE tbl_enrollment SET student_id = ?, section_id = ?, date_enrolled = ?, status = ?, letter_grade = ?
+            WHERE enrollment_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("iisssi", $student_id, $section_id, $date_enrolled, $status, $letter_grade, $enrollment_id);
     
@@ -139,7 +139,7 @@ function deleteEnrollment() {
     
     $enrollment_id = intval($_POST['enrollment_id']);
     
-    if (softDelete('tblEnrollments', 'enrollment_id', $enrollment_id)) {
+    if (softDelete('tbl_enrollment', 'enrollment_id', $enrollment_id)) {
         sendResponse(true, 'Enrollment deleted successfully');
     } else {
         sendResponse(false, 'Error deleting enrollment');
@@ -151,18 +151,18 @@ function getEnrollment() {
     
     $enrollment_id = intval($_GET['enrollment_id']);
     
-    $sql = "SELECT e.*, 
+    $sql = "SELECT e.*,
                    CONCAT(st.first_name, ' ', st.last_name) as student_name,
                    st.student_no,
                    c.course_code, c.course_title,
                    sec.section_code,
                    t.term_code
-            FROM tblEnrollments e
-            LEFT JOIN tblStudents st ON e.student_id = st.student_id
-            LEFT JOIN tblSections sec ON e.section_id = sec.section_id
-            LEFT JOIN tblCourses c ON sec.course_id = c.course_id
-            LEFT JOIN tblTerms t ON sec.term_id = t.term_id
-            WHERE e.enrollment_id = ? AND e.deleted_at IS NULL";
+            FROM tbl_enrollment e
+            LEFT JOIN tbl_student st ON e.student_id = st.student_id
+            LEFT JOIN tbl_section sec ON e.section_id = sec.section_id
+            LEFT JOIN tbl_course c ON sec.course_id = c.course_id
+            LEFT JOIN tbl_term t ON sec.term_id = t.term_id
+            WHERE e.enrollment_id = ? AND e.is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $enrollment_id);
     $stmt->execute();
@@ -180,7 +180,7 @@ function restoreEnrollment() {
     
     $enrollment_id = intval($_POST['enrollment_id']);
     
-    if (restoreDeleted('tblEnrollments', 'enrollment_id', $enrollment_id)) {
+    if (restoreDeleted('tbl_enrollment', 'enrollment_id', $enrollment_id)) {
         sendResponse(true, 'Enrollment restored successfully');
     } else {
         sendResponse(false, 'Error restoring enrollment');
@@ -190,19 +190,19 @@ function restoreEnrollment() {
 function readDeletedEnrollments() {
     global $conn;
     
-    $sql = "SELECT e.*, 
+    $sql = "SELECT e.*,
                    CONCAT(st.first_name, ' ', st.last_name) as student_name,
                    st.student_no,
                    c.course_code, c.course_title,
                    sec.section_code,
                    t.term_code
-            FROM tblEnrollments e
-            LEFT JOIN tblStudents st ON e.student_id = st.student_id
-            LEFT JOIN tblSections sec ON e.section_id = sec.section_id
-            LEFT JOIN tblCourses c ON sec.course_id = c.course_id
-            LEFT JOIN tblTerms t ON sec.term_id = t.term_id
-            WHERE e.deleted_at IS NOT NULL 
-            ORDER BY e.deleted_at DESC";
+            FROM tbl_enrollment e
+            LEFT JOIN tbl_student st ON e.student_id = st.student_id
+            LEFT JOIN tbl_section sec ON e.section_id = sec.section_id
+            LEFT JOIN tbl_course c ON sec.course_id = c.course_id
+            LEFT JOIN tbl_term t ON sec.term_id = t.term_id
+            WHERE e.is_deleted = 1
+            ORDER BY e.enrollment_id DESC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();

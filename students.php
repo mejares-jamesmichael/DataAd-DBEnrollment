@@ -38,19 +38,20 @@ function createStudent() {
     $student_no = sanitize($_POST['student_no']);
     $last_name = sanitize($_POST['last_name']);
     $first_name = sanitize($_POST['first_name']);
+    $middle_name = sanitize($_POST['middle_name'] ?? '');
     $email = sanitize($_POST['email']);
     $gender = sanitize($_POST['gender']);
     $birthdate = sanitize($_POST['birthdate']);
     $year_level = intval($_POST['year_level']);
     $program_id = intval($_POST['program_id']);
-    
+
     if (empty($student_no) || empty($last_name) || empty($first_name) || empty($email) || empty($gender) || empty($birthdate) || empty($year_level) || empty($program_id)) {
         sendResponse(false, 'All fields are required');
     }
-    
-    $sql = "INSERT INTO tblStudents (student_no, last_name, first_name, email, gender, birthdate, year_level, program_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+    $sql = "INSERT INTO tbl_student (student_no, last_name, first_name, middle_name, email, gender, birthdate, year_level, program_id, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssii", $student_no, $last_name, $first_name, $email, $gender, $birthdate, $year_level, $program_id);
+    $stmt->bind_param("sssssssii", $student_no, $last_name, $first_name, $middle_name, $email, $gender, $birthdate, $year_level, $program_id);
     
     if ($stmt->execute()) {
         sendResponse(true, 'Student created successfully', ['id' => $conn->insert_id]);
@@ -78,19 +79,19 @@ function readStudents() {
 
     if (!empty($search)) {
         $sql = "SELECT s.*, p.program_code, p.program_name
-                FROM tblStudents s
-                LEFT JOIN tblPrograms p ON s.program_id = p.program_id AND p.deleted_at IS NULL
+                FROM tbl_student s
+                LEFT JOIN tbl_program p ON s.program_id = p.program_id AND p.is_deleted = 0
                 WHERE (s.student_no LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ? OR s.email LIKE ? OR p.program_code LIKE ?)
-                AND s.deleted_at IS NULL
+                AND s.is_deleted = 0
                 ORDER BY $sort $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("sssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm);
     } else {
         $sql = "SELECT s.*, p.program_code, p.program_name
-                FROM tblStudents s
-                LEFT JOIN tblPrograms p ON s.program_id = p.program_id AND p.deleted_at IS NULL
-                WHERE s.deleted_at IS NULL
+                FROM tbl_student s
+                LEFT JOIN tbl_program p ON s.program_id = p.program_id AND p.is_deleted = 0
+                WHERE s.is_deleted = 0
                 ORDER BY $sort $order";
         $stmt = $conn->prepare($sql);
     }
@@ -113,19 +114,20 @@ function updateStudent() {
     $student_no = sanitize($_POST['student_no']);
     $last_name = sanitize($_POST['last_name']);
     $first_name = sanitize($_POST['first_name']);
+    $middle_name = sanitize($_POST['middle_name'] ?? '');
     $email = sanitize($_POST['email']);
     $gender = sanitize($_POST['gender']);
     $birthdate = sanitize($_POST['birthdate']);
     $year_level = intval($_POST['year_level']);
     $program_id = intval($_POST['program_id']);
-    
+
     if (empty($student_no) || empty($last_name) || empty($first_name) || empty($email) || empty($gender) || empty($birthdate) || empty($year_level) || empty($program_id)) {
         sendResponse(false, 'All fields are required');
     }
-    
-    $sql = "UPDATE tblStudents SET student_no = ?, last_name = ?, first_name = ?, email = ?, gender = ?, birthdate = ?, year_level = ?, program_id = ? WHERE student_id = ?";
+
+    $sql = "UPDATE tbl_student SET student_no = ?, last_name = ?, first_name = ?, middle_name = ?, email = ?, gender = ?, birthdate = ?, year_level = ?, program_id = ? WHERE student_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssiii", $student_no, $last_name, $first_name, $email, $gender, $birthdate, $year_level, $program_id, $student_id);
+    $stmt->bind_param("sssssssiii", $student_no, $last_name, $first_name, $middle_name, $email, $gender, $birthdate, $year_level, $program_id, $student_id);
     
     if ($stmt->execute()) {
         sendResponse(true, 'Student updated successfully');
@@ -139,7 +141,7 @@ function deleteStudent() {
     
     $student_id = intval($_POST['student_id']);
     
-    if (softDelete('tblStudents', 'student_id', $student_id)) {
+    if (softDelete('tbl_student', 'student_id', $student_id)) {
         sendResponse(true, 'Student deleted successfully');
     } else {
         sendResponse(false, 'Error deleting student');
@@ -152,9 +154,9 @@ function getStudent() {
     $student_id = intval($_GET['student_id']);
     
     $sql = "SELECT s.*, p.program_code, p.program_name
-            FROM tblStudents s
-            LEFT JOIN tblPrograms p ON s.program_id = p.program_id AND p.deleted_at IS NULL
-            WHERE s.student_id = ? AND s.deleted_at IS NULL";
+            FROM tbl_student s
+            LEFT JOIN tbl_program p ON s.program_id = p.program_id AND p.is_deleted = 0
+            WHERE s.student_id = ? AND s.is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $student_id);
     $stmt->execute();
@@ -172,7 +174,7 @@ function restoreStudent() {
     
     $student_id = intval($_POST['student_id']);
     
-    if (restoreDeleted('tblStudents', 'student_id', $student_id)) {
+    if (restoreDeleted('tbl_student', 'student_id', $student_id)) {
         sendResponse(true, 'Student restored successfully');
     } else {
         sendResponse(false, 'Error restoring student');
@@ -183,21 +185,21 @@ function readDeletedStudents() {
     global $conn;
 
     // Sorting parameters
-    $allowedSortColumns = ['student_id', 'student_no', 'last_name', 'first_name', 'email', 'year_level', 'program_code', 'deleted_at'];
-    $sort = $_GET['sort'] ?? 'deleted_at';
+    $allowedSortColumns = ['student_id', 'student_no', 'last_name', 'first_name', 'email', 'year_level', 'program_code'];
+    $sort = $_GET['sort'] ?? 'student_id';
     $order = strtoupper($_GET['order'] ?? 'DESC');
 
     if (!in_array($sort, $allowedSortColumns)) {
-        $sort = 'deleted_at';
+        $sort = 'student_id';
     }
     if (!in_array($order, ['ASC', 'DESC'])) {
         $order = 'DESC';
     }
-    
+
     $sql = "SELECT s.*, p.program_code, p.program_name
-            FROM tblStudents s
-            LEFT JOIN tblPrograms p ON s.program_id = p.program_id
-            WHERE s.deleted_at IS NOT NULL 
+            FROM tbl_student s
+            LEFT JOIN tbl_program p ON s.program_id = p.program_id
+            WHERE s.is_deleted = 1
             ORDER BY $sort $order";
     $stmt = $conn->prepare($sql);
     $stmt->execute();

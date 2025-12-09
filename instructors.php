@@ -42,7 +42,7 @@ function createInstructor() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "INSERT INTO tblInstructors (last_name, first_name, email, dept_id) VALUES (?, ?, ?, ?)";
+    $sql = "INSERT INTO tbl_instructor (last_name, first_name, email, dept_id, is_deleted) VALUES (?, ?, ?, ?, 0)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("sssi", $last_name, $first_name, $email, $dept_id);
     
@@ -62,19 +62,19 @@ function readInstructors() {
     
     if (!empty($search)) {
         $sql = "SELECT i.*, d.dept_name, d.dept_code
-                FROM tblInstructors i
-                LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id AND d.deleted_at IS NULL
+                FROM tbl_instructor i
+                LEFT JOIN tbl_department d ON i.dept_id = d.dept_id AND d.is_deleted = 0
                 WHERE (i.last_name LIKE ? OR i.first_name LIKE ? OR i.email LIKE ? OR d.dept_name LIKE ?)
-                AND i.deleted_at IS NULL
+                AND i.is_deleted = 0
                 ORDER BY i.instructor_id $order";
         $stmt = $conn->prepare($sql);
         $searchTerm = "%$search%";
         $stmt->bind_param("ssss", $searchTerm, $searchTerm, $searchTerm, $searchTerm);
     } else {
         $sql = "SELECT i.*, d.dept_name, d.dept_code
-                FROM tblInstructors i
-                LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id AND d.deleted_at IS NULL
-                WHERE i.deleted_at IS NULL
+                FROM tbl_instructor i
+                LEFT JOIN tbl_department d ON i.dept_id = d.dept_id AND d.is_deleted = 0
+                WHERE i.is_deleted = 0
                 ORDER BY i.instructor_id $order";
         $stmt = $conn->prepare($sql);
     }
@@ -103,7 +103,7 @@ function updateInstructor() {
         sendResponse(false, 'All fields are required');
     }
     
-    $sql = "UPDATE tblInstructors SET last_name = ?, first_name = ?, email = ?, dept_id = ? WHERE instructor_id = ?";
+    $sql = "UPDATE tbl_instructor SET last_name = ?, first_name = ?, email = ?, dept_id = ? WHERE instructor_id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("sssii", $last_name, $first_name, $email, $dept_id, $instructor_id);
     
@@ -119,7 +119,7 @@ function deleteInstructor() {
     
     $instructor_id = intval($_POST['instructor_id']);
     
-    if (softDelete('tblInstructors', 'instructor_id', $instructor_id)) {
+    if (softDelete('tbl_instructor', 'instructor_id', $instructor_id)) {
         sendResponse(true, 'Instructor deleted successfully');
     } else {
         sendResponse(false, 'Error deleting instructor');
@@ -132,9 +132,9 @@ function getInstructor() {
     $instructor_id = intval($_GET['instructor_id']);
     
     $sql = "SELECT i.*, d.dept_name, d.dept_code
-            FROM tblInstructors i
-            LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id
-            WHERE i.instructor_id = ? AND i.deleted_at IS NULL";
+            FROM tbl_instructor i
+            LEFT JOIN tbl_department d ON i.dept_id = d.dept_id
+            WHERE i.instructor_id = ? AND i.is_deleted = 0";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $instructor_id);
     $stmt->execute();
@@ -152,7 +152,7 @@ function restoreInstructor() {
     
     $instructor_id = intval($_POST['instructor_id']);
     
-    if (restoreDeleted('tblInstructors', 'instructor_id', $instructor_id)) {
+    if (restoreDeleted('tbl_instructor', 'instructor_id', $instructor_id)) {
         sendResponse(true, 'Instructor restored successfully');
     } else {
         sendResponse(false, 'Error restoring instructor');
@@ -163,10 +163,10 @@ function readDeletedInstructors() {
     global $conn;
     
     $sql = "SELECT i.*, d.dept_name, d.dept_code
-            FROM tblInstructors i
-            LEFT JOIN tblDepartments d ON i.dept_id = d.dept_id
-            WHERE i.deleted_at IS NOT NULL 
-            ORDER BY i.deleted_at DESC";
+            FROM tbl_instructor i
+            LEFT JOIN tbl_department d ON i.dept_id = d.dept_id
+            WHERE i.is_deleted = 1
+            ORDER BY i.instructor_id DESC";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $result = $stmt->get_result();
