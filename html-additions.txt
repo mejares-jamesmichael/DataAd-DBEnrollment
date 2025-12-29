@@ -1,0 +1,128 @@
+<!-- ========================================== -->
+<!-- ADD THIS TO NAVIGATION (after enrollments button) -->
+<!-- ========================================== -->
+<button onclick="showSection('maintenance')" data-section="maintenance">Maintenance</button>
+
+
+<!-- ========================================== -->
+<!-- ADD THIS SECTION AFTER ENROLLMENTS SECTION -->
+<!-- (Insert before closing </main> tag) -->
+<!-- ========================================== -->
+
+<!-- Maintenance Section -->
+<section id="maintenance" class="section" data-module="maintenance">
+    <h2>Database Maintenance</h2>
+    
+    <!-- Database Statistics -->
+    <div class="maintenance-card">
+        <h3>Database Statistics</h3>
+        <div id="dbStatsContainer">
+            <p>Loading statistics...</p>
+        </div>
+    </div>
+    
+    <!-- Backup & Restore -->
+    <div class="maintenance-card">
+        <h3>Backup & Restore</h3>
+        <div class="maintenance-actions">
+            <button onclick="openBackupModal()" class="btn-primary">
+                📥 Backup Database
+            </button>
+            <button onclick="openRestoreModal()" class="btn-warning">
+                📤 Restore Database
+            </button>
+        </div>
+        
+        <h4>Backup History</h4>
+        <table id="backupLogsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Filename</th>
+                    <th>Size</th>
+                    <th>Date</th>
+                    <th>Performed By</th>
+                </tr>
+            </thead>
+            <tbody id="backupLogsBody">
+                <tr><td colspan="5">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Database Optimization -->
+    <div class="maintenance-card">
+        <h3>Database Optimization</h3>
+        <div class="maintenance-actions">
+            <button onclick="optimizeTables()" class="btn-secondary">
+                ⚡ Optimize Tables
+            </button>
+            <button onclick="archiveOldEnrollments()" class="btn-secondary">
+                📦 Archive Old Enrollments
+            </button>
+        </div>
+        <p class="help-text">
+            <strong>Optimize Tables:</strong> Improves database performance by reorganizing data storage.<br>
+            <strong>Archive Old Enrollments:</strong> Moves enrollments older than 2 years to archive table.
+        </p>
+    </div>
+</section>
+
+
+<!-- ========================================== -->
+<!-- ADD THESE MODALS BEFORE CLOSING </body> TAG -->
+<!-- (After trash modal, before <script> tag) -->
+<!-- ========================================== -->
+
+<!-- Backup Modal -->
+<div id="backupModal" class="modal" role="dialog" aria-labelledby="backupModalTitle" aria-modal="true">
+    <div class="modal-content">
+        <span class="close" onclick="closeBackupModal()" aria-label="Close">&times;</span>
+        <h2 id="backupModalTitle">Backup Database</h2>
+        <form id="backupForm" onsubmit="performBackup(event)">
+            <label for="backupFilename">Backup Filename:</label>
+            <input type="text" id="backupFilename" required>
+            <p class="help-text">
+                The backup file will be downloaded to your computer.
+                Default filename includes current date and time.
+            </p>
+            <button type="submit" id="backupBtn">Download Backup</button>
+            <button type="button" onclick="closeBackupModal()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<!-- Restore Modal -->
+<div id="restoreModal" class="modal" role="dialog" aria-labelledby="restoreModalTitle" aria-modal="true">
+    <div class="modal-content">
+        <span class="close" onclick="closeRestoreModal()" aria-label="Close">&times;</span>
+        <h2 id="restoreModalTitle">Restore Database</h2>
+        <form id="restoreForm" onsubmit="performRestore(event)">
+            <label for="restoreFile">Select Backup File (.sql):</label>
+            <input type="file" id="restoreFile" accept=".sql" required>
+            <div class="warning-box">
+                <strong>⚠️ WARNING:</strong> This will overwrite all existing data in the database.
+                Make sure you have a recent backup before proceeding.
+            </div>
+            <button type="submit" id="restoreBtn" class="btn-warning">Restore Database</button>
+            <button type="button" onclick="closeRestoreModal()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+
+<!-- ========================================== -->
+<!-- UPDATE ENROLLMENT MODAL -->
+<!-- Add this div after the section select field -->
+<!-- ========================================== -->
+
+<!-- Add this line after <select id="enrollSection" required></select> in enrollment modal -->
+<div id="prerequisitesInfo" class="prerequisites-container"></div>
+
+<!-- Also update the section select to trigger prerequisite check -->
+<!-- Change: <select id="enrollSection" required></select> -->
+<!-- To: <select id="enrollSection" required onchange="checkEnrollmentPrerequisites()"></select> -->
+
+<!-- And update student select too -->
+<!-- Change: <select id="enrollStud" required></select> -->
+<!-- To: <select id="enrollStud" required onchange="checkEnrollmentPrerequisites()"></select> -->
