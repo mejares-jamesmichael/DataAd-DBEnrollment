@@ -11,26 +11,29 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-$action = $_POST['action'] ?? $_GET['action'] ?? '';
+// Only process auth actions when this file is accessed directly (not when included)
+if (basename($_SERVER['PHP_SELF']) === 'auth.php') {
+    $action = $_POST['action'] ?? $_GET['action'] ?? '';
 
-switch ($action) {
-    case 'login':
-        login();
-        break;
-    case 'logout':
-        logout();
-        break;
-    case 'checkSession':
-        checkSession();
-        break;
-    case 'getCurrentUser':
-        getCurrentUser();
-        break;
-    case 'changePassword':
-        changePassword();
-        break;
-    default:
-        sendResponse(false, 'Invalid action');
+    switch ($action) {
+        case 'login':
+            login();
+            break;
+        case 'logout':
+            logout();
+            break;
+        case 'checkSession':
+            checkSession();
+            break;
+        case 'getCurrentUser':
+            getCurrentUser();
+            break;
+        case 'changePassword':
+            changePassword();
+            break;
+        default:
+            sendResponse(false, 'Invalid action');
+    }
 }
 
 /**
