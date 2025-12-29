@@ -15,6 +15,7 @@ function showSection(section) {
         case 'rooms': loadRooms(); break;
         case 'sections': loadSections(); break;
         case 'enrollments': loadEnrollments(); break;
+        case 'maintenance': loadMaintenance(); break;
     }
 }
 
